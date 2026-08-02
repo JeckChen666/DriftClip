@@ -44,6 +44,9 @@ yarn-error.log*
 # --- 数据库与密钥 ---
 *.sqlite
 *.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite-journal
 *.db
 *.db-journal
 *.db-wal

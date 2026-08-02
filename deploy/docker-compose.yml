@@ -1,0 +1,28 @@
+# DriftClip 自托管部署（V1 §8.1）。
+# 应用不直接暴露公网：HTTPS、域名、证书与反向代理由部署者负责。
+# 启动前设置强随机 secret 与 pepper：
+#   export DRIFTCLIP_SESSION_SECRET="$(openssl rand -hex 32)"
+#   export DRIFTCLIP_KEY_PEPPER="$(openssl rand -hex 32)"
+#   docker compose up -d --build
+services:
+  driftclip:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    ports:
+      - "127.0.0.1:8080:8080" # 仅回环暴露，对外由反向代理转发
+    volumes:
+      - driftclip-data:/data # SQLite 持久化卷（V1 §8.1）
+    environment:
+      DRIFTCLIP_DATABASE_PATH: /data/driftclip.sqlite
+      DRIFTCLIP_WEB_STATIC_DIR: /app/web/dist
+      # 生产强制 HTTPS：请求必须经可信反向代理以 X-Forwarded-Proto: https 转发
+      DRIFTCLIP_SERVER_REQUIRE_HTTPS: "true"
+      # 反向代理内网网段（CIDR，逗号分隔）——用于正确读取客户端公网 IP
+      # DRIFTCLIP_SERVER_TRUSTED_PROXIES: "172.16.0.0/12,10.0.0.0/8"
+      DRIFTCLIP_SESSION_SECRET: "${DRIFTCLIP_SESSION_SECRET:?请在 .env 中设置强随机 DRIFTCLIP_SESSION_SECRET}"
+      DRIFTCLIP_KEY_PEPPER: "${DRIFTCLIP_KEY_PEPPER:?请在 .env 中设置强随机 DRIFTCLIP_KEY_PEPPER}"
+    restart: unless-stopped
+
+volumes:
+  driftclip-data:

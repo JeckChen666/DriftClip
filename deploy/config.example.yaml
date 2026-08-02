@@ -1,0 +1,26 @@
+# DriftClip 服务端配置示例（对齐 CLIPBOARD_SYNC_V1_PLAN.md §8.2）。
+# 每个字段都可被对应的 DRIFTCLIP_* 环境变量覆盖（见 server/internal/config）。
+server:
+  listen_addr: "0.0.0.0:8080"
+  business_timezone: "Asia/Shanghai"
+  trusted_proxies: [] # 反向代理内网 CIDR，例如 ["172.16.0.0/12"]；环境变量用逗号分隔
+  require_https: true # 生产开启：拒绝非 HTTPS（反向代理必须以 X-Forwarded-Proto: https 转发）
+
+registration:
+  enabled: true
+
+history:
+  max_history_records: 100
+  max_clipboard_text_bytes: 102400
+
+security:
+  session_duration_days: 30
+  # 以下两个值必须替换为强随机串；只能由部署者安全保存，禁止提交到代码库或打印到日志
+  session_secret: "replace-with-a-long-random-secret"
+  key_pepper: "replace-with-a-separate-long-random-secret"
+
+database:
+  path: "/data/driftclip.sqlite"
+
+web:
+  static_dir: "/app/web/dist"
