@@ -1,0 +1,109 @@
+/* GENERATED FILE — DO NOT EDIT.
+   Source: tokens/tokens.json
+   Run: dart run tool/sync_tokens.dart */
+
+:root {
+  --accent: #2563eb;
+  --accent-deep: #1e40af;
+  --accent-hover: #1d4ed8;
+  --accent-subtle: #eaf1ff;
+  --border: #e4e7ec;
+  --border-strong: #cdd3dc;
+  --canvas: #f7f8fa;
+  --danger: #dc2626;
+  --danger-hover: #b91c1c;
+  --danger-subtle: #fee2e2;
+  --field-fill: #fcfcfd;
+  --on-accent: #ffffff;
+  --on-accent-subtle: #1d4ed8;
+  --on-danger: #ffffff;
+  --on-danger-subtle: #b91c1c;
+  --shadow: #1f1a202c;
+  --success: #16a34a;
+  --surface: #ffffff;
+  --surface-subtle: #f3f4f6;
+  --text-muted: #646b77;
+  --text-primary: #17191e;
+  --warn-bg: #fff7e6;
+  --warn-border: #f5c96b;
+  --warn-text: #8a5a00;
+  --ring: rgba(37, 99, 235, 0.35);
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.04);
+  --radius-lg: 12px;
+  --radius-md: 10px;
+  --radius-pill: 999px;
+  --radius-sm: 8px;
+  --radius-xl: 14px;
+  --radius-xs: 6px;
+  --radius-xxl: 16px;
+  --control-lg: 40px;
+  --control-md: 36px;
+  --control-sm: 32px;
+  --control-xl: 44px;
+  --icon-lg: 18px;
+  --icon-md: 16px;
+  --icon-sm: 14px;
+  --icon-xl: 20px;
+  --icon-xxl: 24px;
+  --accent-purple-border: #c4b5fd;
+  --accent-purple-text: #7c3aed;
+  --snack-bar-dark: #2a2f38;
+  --snack-bar-light: #1f242c;
+  --snack-bar-text: #f2f4f7;
+  --switch-track-off-dark: #3a4150;
+  --switch-track-off-light: #d6dae1;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent: #3b82f6;
+    --accent-deep: #2563eb;
+    --accent-hover: #60a5fa;
+    --accent-subtle: #16233b;
+    --border: #262b33;
+    --border-strong: #39404c;
+    --canvas: #0f1114;
+    --danger: #f87171;
+    --danger-hover: #fca5a5;
+    --danger-subtle: #3a1d1f;
+    --field-fill: #1a1e25;
+    --on-accent: #ffffff;
+    --on-accent-subtle: #bfdbfe;
+    --on-danger: #450a0a;
+    --on-danger-subtle: #fca5a5;
+    --shadow: #a6000000;
+    --success: #22c55e;
+    --surface: #15181d;
+    --surface-subtle: #1e2229;
+    --text-muted: #9aa3b2;
+    --text-primary: #e9ecf1;
+    --warn-bg: #2b2415;
+    --warn-border: #8a6d2f;
+    --warn-text: #f0c674;
+    --ring: rgba(59, 130, 246, 0.4);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --radius-lg: 12px;
+    --radius-md: 10px;
+    --radius-pill: 999px;
+    --radius-sm: 8px;
+    --radius-xl: 14px;
+    --radius-xs: 6px;
+    --radius-xxl: 16px;
+    --control-lg: 40px;
+    --control-md: 36px;
+    --control-sm: 32px;
+    --control-xl: 44px;
+    --icon-lg: 18px;
+    --icon-md: 16px;
+    --icon-sm: 14px;
+    --icon-xl: 20px;
+    --icon-xxl: 24px;
+    --accent-purple-border: #c4b5fd;
+    --accent-purple-text: #7c3aed;
+    --snack-bar-dark: #2a2f38;
+    --snack-bar-light: #1f242c;
+    --snack-bar-text: #f2f4f7;
+    --switch-track-off-dark: #3a4150;
+    --switch-track-off-light: #d6dae1;
+  }
+}
