@@ -32,8 +32,10 @@ class SettingsStore {
   /// 用户可在设置中修改并持久化。
   String get apiBaseUrl =>
       _p.getString(_kApiBaseUrl) ??
-      const String.fromEnvironment('DRIFTCLIP_API_BASE',
-          defaultValue: 'http://127.0.0.1:8080');
+      const String.fromEnvironment(
+        'DRIFTCLIP_API_BASE',
+        defaultValue: 'http://127.0.0.1:8080',
+      );
   Future<void> setApiBaseUrl(String v) => _p.setString(_kApiBaseUrl, v);
 
   String? get apiKey => _p.getString(_kApiKey);

@@ -8,5 +8,11 @@
 	<true/>
 	<key>com.apple.security.network.server</key>
 	<true/>
+	<!-- 出站 HTTP：访问远端 DriftClip 服务端所需 -->
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<!-- 本地回环出站豁免：开发期访问 127.0.0.1:8080 更稳（macOS 13+ 推荐） -->
+	<key>com.apple.security.network.client.allow-local</key>
+	<true/>
 </dict>
 </plist>

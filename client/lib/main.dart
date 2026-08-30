@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'screens/desktop_shell.dart';
 import 'screens/home_screen.dart';
+import 'theme.dart';
 import 'screens/key_config_screen.dart';
 import 'services/api_client.dart';
 import 'services/clipboard_monitor.dart';
@@ -28,7 +30,10 @@ class DriftClipApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'DriftClip',
-      theme: ThemeData(colorSchemeSeed: Colors.blue, useMaterial3: true),
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: ThemeMode.system,
       home: HomeShell(settings: settings, dedup: dedup),
     );
   }
@@ -72,7 +77,9 @@ class _HomeShellState extends State<HomeShell> {
     }
     _desktop.init();
     // 移动端仅前台采集：后台暂停轮询、前台恢复（Spec §5.2）。
-    _lifecycle = AppLifecycleListener(onStateChange: _monitor.handleAppLifecycle);
+    _lifecycle = AppLifecycleListener(
+      onStateChange: _monitor.handleAppLifecycle,
+    );
   }
 
   @override
@@ -95,6 +102,18 @@ class _HomeShellState extends State<HomeShell> {
         settings: widget.settings,
         uploader: _uploader,
         onSaved: _onKeySaved,
+      );
+    }
+    // 断点 ≥720 走桌面端双栏布局（NavSidebar + HistoryContent + DetailPane）；
+    // < 720 走移动端单列布局（HomeScreen，含 AppBar / FAB）。
+    final width = MediaQuery.of(context).size.width;
+    if (width >= 720) {
+      return DesktopShell(
+        settings: widget.settings,
+        api: _api,
+        uploader: _uploader,
+        monitor: _monitor,
+        desktop: _desktop,
       );
     }
     return HomeScreen(

@@ -39,11 +39,11 @@ class UploadCoordinator {
     String? deviceModel,
     String? appVersion,
     this.delays = const [Duration(seconds: 1), Duration(seconds: 2)],
-  })  : needsNewKey = needsNewKey ?? ValueNotifier(false),
-        platform = platform ?? DeviceInfo.platform(),
-        osVersion = osVersion ?? DeviceInfo.osVersion(),
-        deviceModel = deviceModel ?? DeviceInfo.deviceModel(),
-        appVersion = appVersion ?? DeviceInfo.appVersion();
+  }) : needsNewKey = needsNewKey ?? ValueNotifier(false),
+       platform = platform ?? DeviceInfo.platform(),
+       osVersion = osVersion ?? DeviceInfo.osVersion(),
+       deviceModel = deviceModel ?? DeviceInfo.deviceModel(),
+       appVersion = appVersion ?? DeviceInfo.appVersion();
 
   static String sha256Hex(String text) =>
       sha256.convert(utf8.encode(text)).toString();
@@ -59,15 +59,17 @@ class UploadCoordinator {
     if (hash == dedup.lastHash) return true;
 
     for (var attempt = 0; attempt <= delays.length; attempt++) {
-      final res = await api.upload(HistoryDraft(
-        content: text,
-        source: source,
-        platform: platform,
-        osVersion: osVersion,
-        deviceModel: deviceModel,
-        appVersion: appVersion,
-        installationId: settings.installationId(),
-      ));
+      final res = await api.upload(
+        HistoryDraft(
+          content: text,
+          source: source,
+          platform: platform,
+          osVersion: osVersion,
+          deviceModel: deviceModel,
+          appVersion: appVersion,
+          installationId: settings.installationId(),
+        ),
+      );
       if (res.ok) {
         // 只有成功响应后才更新摘要；失败/超时/中断不更新（Spec §4.2）。
         await dedup.update(hash);

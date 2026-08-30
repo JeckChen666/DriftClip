@@ -29,7 +29,8 @@ class HistoryRecord {
     this.publicIp,
   });
 
-  factory HistoryRecord.fromListJson(Map<String, dynamic> json) => HistoryRecord(
+  factory HistoryRecord.fromListJson(Map<String, dynamic> json) =>
+      HistoryRecord(
         id: (json['id'] as num).toInt(),
         contentPreview: (json['content_preview'] as String?) ?? '',
         source: (json['source'] as String?) ?? '',
@@ -41,7 +42,8 @@ class HistoryRecord {
         installationId: (json['installation_id'] as String?) ?? '',
       );
 
-  factory HistoryRecord.fromDetailJson(Map<String, dynamic> json) => HistoryRecord(
+  factory HistoryRecord.fromDetailJson(Map<String, dynamic> json) =>
+      HistoryRecord(
         id: (json['id'] as num).toInt(),
         contentPreview: (json['content'] as String?) ?? '',
         source: (json['source'] as String?) ?? '',

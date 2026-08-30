@@ -63,3 +63,6 @@ yarn-error.log*
 .vscode/
 *.swp
 *~
+
+# --- 临时产物（ImageGen 草稿等）---
+/output/

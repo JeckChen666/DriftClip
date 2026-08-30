@@ -4,5 +4,11 @@
 <dict>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
+	<!-- 出站 HTTP：访问远端 DriftClip 服务端所需 -->
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<!-- 入站监听（如启用 LAN 共享，可按需开启） -->
+	<key>com.apple.security.network.server</key>
+	<true/>
 </dict>
 </plist>
