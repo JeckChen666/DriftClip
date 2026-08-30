@@ -10,9 +10,9 @@ class BrandTitle extends StatelessWidget {
 
   const BrandTitle({
     super.key,
-    this.iconSize = 34,
+    this.iconSize = 32,
     this.showSubtitle = true,
-    this.titleSize = 22,
+    this.titleSize = 20,
   });
 
   @override
@@ -45,7 +45,7 @@ class BrandTitle extends StatelessWidget {
               Text(
                 '剪贴板历史',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 10,
                   color: scheme.onSurfaceVariant,
                   height: 1.0,
                 ),

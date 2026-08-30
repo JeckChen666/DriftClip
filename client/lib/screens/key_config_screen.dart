@@ -61,17 +61,17 @@ class _KeyConfigScreenState extends State<KeyConfigScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(18),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 460),
+              constraints: const BoxConstraints(maxWidth: 440),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // 品牌区：图标 + 标题 + 说明
                   Container(
-                    width: 56,
-                    height: 56,
+                    width: 44,
+                    height: 44,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -79,24 +79,24 @@ class _KeyConfigScreenState extends State<KeyConfigScreen> {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(
                       Icons.content_paste_rounded,
                       color: Colors.white,
-                      size: 28,
+                      size: 22,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 14),
                   Text(
                     '连接 DriftClip',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
+                      letterSpacing: -0.4,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     '在 Web 端「Key 管理」页生成 Key 并填入此处，'
                     '服务地址默认本机开发地址。',
@@ -106,12 +106,12 @@ class _KeyConfigScreenState extends State<KeyConfigScreen> {
                       color: scheme.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 18),
                   // 表单区
                   Card(
                     clipBehavior: Clip.antiAlias,
                     child: Padding(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(14),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -120,10 +120,10 @@ class _KeyConfigScreenState extends State<KeyConfigScreen> {
                             decoration: const InputDecoration(
                               labelText: '服务地址',
                               hintText: 'http://127.0.0.1:8080',
-                              prefixIcon: Icon(Icons.dns_rounded, size: 18),
+                              prefixIcon: Icon(Icons.dns_rounded, size: 16),
                             ),
                           ),
-                          const SizedBox(height: 14),
+                          const SizedBox(height: 10),
                           TextField(
                             controller: _keyController,
                             obscureText: _obscureKey,
@@ -132,7 +132,7 @@ class _KeyConfigScreenState extends State<KeyConfigScreen> {
                               labelText: 'Key',
                               prefixIcon: const Icon(
                                 Icons.key_rounded,
-                                size: 18,
+                                size: 16,
                               ),
                               suffixIcon: IconButton(
                                 tooltip: _obscureKey ? '显示 Key' : '隐藏 Key',
@@ -140,7 +140,7 @@ class _KeyConfigScreenState extends State<KeyConfigScreen> {
                                   _obscureKey
                                       ? Icons.visibility_rounded
                                       : Icons.visibility_off_rounded,
-                                  size: 18,
+                                  size: 16,
                                 ),
                                 onPressed: () =>
                                     setState(() => _obscureKey = !_obscureKey),
@@ -148,12 +148,12 @@ class _KeyConfigScreenState extends State<KeyConfigScreen> {
                             ),
                           ),
                           if (_error != null) ...[
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 8),
                             Row(
                               children: [
                                 Icon(
                                   Icons.error_outline_rounded,
-                                  size: 16,
+                                  size: 14,
                                   color: scheme.error,
                                 ),
                                 const SizedBox(width: 6),
@@ -162,14 +162,14 @@ class _KeyConfigScreenState extends State<KeyConfigScreen> {
                                     _error!,
                                     style: TextStyle(
                                       color: scheme.error,
-                                      fontSize: 13,
+                                      fontSize: 12,
                                     ),
                                   ),
                                 ),
                               ],
                             ),
                           ],
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 14),
                           FilledButton(
                             onPressed: _save,
                             child: const Text('保存'),

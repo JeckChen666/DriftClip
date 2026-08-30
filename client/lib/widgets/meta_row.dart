@@ -21,24 +21,24 @@ class MetaRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 16, color: scheme.onSurfaceVariant),
+          Icon(icon, size: 14, color: scheme.onSurfaceVariant),
           const SizedBox(width: 8),
           SizedBox(
-            width: 64,
+            width: 56,
             child: Text(
               label,
-              style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+              style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
             ),
           ),
           Expanded(
             child: Text(
               value,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11,
                 fontFamily: monospace ? 'monospace' : null,
               ),
             ),

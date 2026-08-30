@@ -63,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        titleSpacing: 16,
+        titleSpacing: 14,
         title: const BrandTitle(),
         actions: [
           IconButton(

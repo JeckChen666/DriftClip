@@ -57,7 +57,7 @@ class NavSidebar extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final canvas = Theme.of(context).scaffoldBackgroundColor;
     return Container(
-      width: 240,
+      width: 220,
       decoration: BoxDecoration(
         color: canvas,
         border: Border(
@@ -79,12 +79,12 @@ class NavSidebar extends StatelessWidget {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 18, 16, 14),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const BrandTitle(iconSize: 30, titleSize: 19, showSubtitle: false),
-          const SizedBox(height: 14),
+          const BrandTitle(iconSize: 26, titleSize: 18, showSubtitle: false),
+          const SizedBox(height: 10),
           Row(
             children: [
               StatusChip(listening: listening, dense: true),
@@ -104,7 +104,7 @@ class NavSidebar extends StatelessWidget {
   Widget _buildScrollBody(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -116,7 +116,7 @@ class NavSidebar extends StatelessWidget {
             selected: selectedPlatform == null,
             onTap: () => onPlatformChanged(null),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           _sectionLabel(scheme, '按平台'),
           ..._platformItems(),
         ],
@@ -143,7 +143,7 @@ class NavSidebar extends StatelessWidget {
 
   Widget _buildFooter() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 14),
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -167,13 +167,13 @@ class NavSidebar extends StatelessWidget {
 
   Widget _sectionLabel(ColorScheme scheme, String text) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 6, 18, 6),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: FontWeight.w700,
-          letterSpacing: 0.6,
+          letterSpacing: 0.5,
           color: scheme.onSurfaceVariant,
         ),
       ),
@@ -186,11 +186,11 @@ class NavSidebar extends StatelessWidget {
     required VoidCallback onPressed,
   }) {
     return SizedBox(
-      width: 36,
-      height: 36,
+      width: 32,
+      height: 32,
       child: IconButton(
         tooltip: tooltip,
-        icon: Icon(icon, size: 18),
+        icon: Icon(icon, size: 16),
         padding: EdgeInsets.zero,
         onPressed: onPressed,
       ),
@@ -218,30 +218,30 @@ class _NavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 1, 8, 1),
+      padding: const EdgeInsets.fromLTRB(6, 1, 6, 1),
       child: Material(
         color: selected ? scheme.primaryContainer : Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
         child: InkWell(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(8),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             child: Row(
               children: [
                 Icon(
                   icon,
-                  size: 18,
+                  size: 16,
                   color: selected
                       ? scheme.onPrimaryContainer
                       : scheme.onSurfaceVariant,
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     label,
                     style: TextStyle(
-                      fontSize: 13.5,
+                      fontSize: 12.5,
                       fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                       color: selected
                           ? scheme.onPrimaryContainer
@@ -253,7 +253,7 @@ class _NavItem extends StatelessWidget {
                   Text(
                     '$count',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 11,
                       color: selected
                           ? scheme.onPrimaryContainer.withValues(alpha: 0.7)
                           : scheme.onSurfaceVariant,
@@ -290,32 +290,32 @@ class _PlatformNavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 1, 8, 1),
+      padding: const EdgeInsets.fromLTRB(6, 1, 6, 1),
       child: Material(
         color: selected ? scheme.primaryContainer : Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
         child: InkWell(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(8),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             child: Row(
               children: [
                 Container(
-                  width: 20,
-                  height: 20,
+                  width: 18,
+                  height: 18,
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(5),
                   ),
-                  child: Icon(icon, size: 14, color: color),
+                  child: Icon(icon, size: 12, color: color),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     label,
                     style: TextStyle(
-                      fontSize: 13.5,
+                      fontSize: 12.5,
                       fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                       color: selected
                           ? scheme.onPrimaryContainer
@@ -326,7 +326,7 @@ class _PlatformNavItem extends StatelessWidget {
                 Text(
                   '$count',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 11,
                     color: selected
                         ? scheme.onPrimaryContainer.withValues(alpha: 0.7)
                         : scheme.onSurfaceVariant,
@@ -360,20 +360,20 @@ class _FooterButton extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(8),
       child: InkWell(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
         onTap: onPressed,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           child: Row(
             children: [
-              Icon(icon, size: 16, color: scheme.onSurfaceVariant),
-              const SizedBox(width: 10),
+              Icon(icon, size: 15, color: scheme.onSurfaceVariant),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   label,
-                  style: TextStyle(fontSize: 13, color: scheme.onSurface),
+                  style: TextStyle(fontSize: 12, color: scheme.onSurface),
                 ),
               ),
               _ShortcutHint(text: shortcut),
@@ -395,16 +395,16 @@ class _ShortcutHint extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(5),
+        borderRadius: BorderRadius.circular(4),
         border: Border.all(color: scheme.outlineVariant, width: 0.6),
       ),
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 10.5,
+          fontSize: 10,
           fontWeight: FontWeight.w600,
           color: scheme.onSurfaceVariant,
           fontFeatures: const [FontFeature.tabularFigures()],

@@ -7,7 +7,7 @@ class PlatformAvatar extends StatelessWidget {
   final String platform;
   final double size;
 
-  const PlatformAvatar({super.key, required this.platform, this.size = 36});
+  const PlatformAvatar({super.key, required this.platform, this.size = 32});
 
   /// 平台 → (图标, 颜色) 映射；集中避免散落到各处。
   static (IconData, Color) lookup(String platform) {

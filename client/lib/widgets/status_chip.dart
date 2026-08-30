@@ -18,10 +18,10 @@ class StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = listening ? const Color(0xFF16A34A) : const Color(0xFFD97706);
-    final hPad = dense ? 9.0 : 11.0;
-    final vPad = dense ? 3.0 : 5.0;
-    final fontSize = dense ? 11.0 : 12.0;
-    final dotSize = dense ? 6.0 : 8.0;
+    final hPad = dense ? 8.0 : 10.0;
+    final vPad = dense ? 2.0 : 4.0;
+    final fontSize = dense ? 10.0 : 11.0;
+    final dotSize = dense ? 5.0 : 7.0;
 
     final body = Container(
       padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
@@ -33,7 +33,7 @@ class StatusChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.circle, size: dotSize, color: color),
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           Text(
             listening ? '监听中' : '监听未开启',
             style: TextStyle(

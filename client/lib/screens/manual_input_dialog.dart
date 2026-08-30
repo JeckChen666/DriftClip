@@ -27,27 +27,27 @@ class _ManualInputDialogState extends State<ManualInputDialog> {
     final scheme = Theme.of(context).colorScheme;
     return AlertDialog(
       // 紧凑档：默认 horizontal:40 / vertical:24 在桌面端过宽。
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      titlePadding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
-      contentPadding: const EdgeInsets.fromLTRB(20, 14, 20, 16),
-      actionsPadding: const EdgeInsets.fromLTRB(12, 4, 12, 14),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      titlePadding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+      contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+      actionsPadding: const EdgeInsets.fromLTRB(12, 2, 12, 10),
       title: Row(
         children: [
-          // 28×28 与 15px 标题文字比例接近；之前 36×36 在弹窗里显重。
+          // 24×24 与 14px 标题文字比例接近；之前 28×28 在弹窗里显重。
           Container(
-            width: 28,
-            height: 28,
+            width: 24,
+            height: 24,
             decoration: BoxDecoration(
               color: scheme.primaryContainer,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(6),
             ),
             child: Icon(
               Icons.edit_rounded,
-              size: 16,
+              size: 14,
               color: scheme.onPrimaryContainer,
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           const Text('手动输入'),
         ],
       ),
@@ -63,17 +63,17 @@ class _ManualInputDialogState extends State<ManualInputDialog> {
         ),
       ),
       actions: [
-        // 两按钮统一 40h，与卡片内按钮节奏一致；
-        // 否则 FilledButton(44) 与 TextButton(36) 同列会出现 8px 高差。
+        // 两按钮统一 36h，与卡片内按钮节奏一致；
+        // 否则 FilledButton(36) 与 TextButton(32) 同列会出现 4px 高差。
         TextButton(
-          style: TextButton.styleFrom(minimumSize: const Size(0, 40)),
+          style: TextButton.styleFrom(minimumSize: const Size(0, 36)),
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('取消'),
         ),
         FilledButton.icon(
-          style: FilledButton.styleFrom(minimumSize: const Size(0, 40)),
+          style: FilledButton.styleFrom(minimumSize: const Size(0, 36)),
           onPressed: () => Navigator.of(context).pop(_controller.text),
-          icon: const Icon(Icons.upload_rounded, size: 16),
+          icon: const Icon(Icons.upload_rounded, size: 14),
           label: const Text('上传'),
         ),
       ],

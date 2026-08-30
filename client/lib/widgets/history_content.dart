@@ -374,8 +374,8 @@ class HistoryContentState extends State<HistoryContent> {
   /// 工具栏：监听状态 + 搜索框；compact 模式搜索框旁放「选择」入口。
   Widget _buildToolbar() {
     final pad = widget.compact
-        ? const EdgeInsets.fromLTRB(20, 10, 20, 8)
-        : const EdgeInsets.fromLTRB(16, 4, 16, 8);
+        ? const EdgeInsets.fromLTRB(16, 8, 16, 6)
+        : const EdgeInsets.fromLTRB(14, 2, 14, 6);
     return Padding(
       padding: pad,
       child: Column(
@@ -399,7 +399,7 @@ class HistoryContentState extends State<HistoryContent> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
           ],
           Row(
             children: [
@@ -410,12 +410,12 @@ class HistoryContentState extends State<HistoryContent> {
                   textInputAction: TextInputAction.search,
                   decoration: InputDecoration(
                     hintText: '搜索剪贴板历史…',
-                    prefixIcon: const Icon(Icons.search, size: 16),
+                    prefixIcon: const Icon(Icons.search, size: 15),
                     suffixIcon: _query.isEmpty
                         ? null
                         : IconButton(
                             tooltip: '清除',
-                            icon: const Icon(Icons.close, size: 16),
+                            icon: const Icon(Icons.close, size: 14),
                             onPressed: () => setState(() => _query = ''),
                           ),
                   ),
@@ -433,7 +433,7 @@ class HistoryContentState extends State<HistoryContent> {
   }
 
   /// 多选入口（桌面端工具栏）：默认低调描边，激活后浅 accent 底强调。
-  /// 紧凑档高度 36，与工具栏搜索框对齐。
+  /// 紧凑档高度 32，与工具栏搜索框对齐。
   Widget _selectionToggle() {
     final scheme = Theme.of(context).colorScheme;
     if (_selectionMode) {
@@ -444,10 +444,10 @@ class HistoryContentState extends State<HistoryContent> {
           style: FilledButton.styleFrom(
             backgroundColor: scheme.primaryContainer,
             foregroundColor: scheme.onPrimaryContainer,
-            minimumSize: const Size(0, 36),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            minimumSize: const Size(0, 32),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
           ),
-          icon: const Icon(Icons.check_circle_rounded, size: 16),
+          icon: const Icon(Icons.check_circle_rounded, size: 14),
           label: const Text('完成'),
         ),
       );
@@ -459,10 +459,10 @@ class HistoryContentState extends State<HistoryContent> {
         style: OutlinedButton.styleFrom(
           foregroundColor: scheme.onSurfaceVariant,
           side: BorderSide(color: scheme.outlineVariant),
-          minimumSize: const Size(0, 36),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          minimumSize: const Size(0, 32),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
         ),
-        icon: const Icon(Icons.checklist_rounded, size: 16),
+        icon: const Icon(Icons.checklist_rounded, size: 14),
         label: const Text('选择'),
       ),
     );
@@ -474,11 +474,11 @@ class HistoryContentState extends State<HistoryContent> {
         _filtered.isNotEmpty && _selected.length == _filtered.length;
     final scheme = Theme.of(context).colorScheme;
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      margin: const EdgeInsets.fromLTRB(14, 0, 14, 6),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: scheme.primaryContainer,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
         children: [
@@ -499,7 +499,7 @@ class HistoryContentState extends State<HistoryContent> {
               onPressed: _deleteSelected,
               style: TextButton.styleFrom(
                 foregroundColor: scheme.error,
-                minimumSize: const Size(0, 36),
+                minimumSize: const Size(0, 32),
               ),
               child: Text('删除所选（${_selected.length}）'),
             ),
@@ -508,8 +508,8 @@ class HistoryContentState extends State<HistoryContent> {
                 ? FilledButton.tonal(
                     onPressed: null,
                     style: FilledButton.styleFrom(
-                      minimumSize: const Size(0, 36),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      minimumSize: const Size(0, 32),
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
                     ),
                     child: Text('清空全部（${_clearCountdown}s）'),
                   )
@@ -519,8 +519,8 @@ class HistoryContentState extends State<HistoryContent> {
                     style: FilledButton.styleFrom(
                       backgroundColor: scheme.error,
                       foregroundColor: scheme.onError,
-                      minimumSize: const Size(0, 36),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      minimumSize: const Size(0, 32),
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
                     ),
                     child: const Text('确认清空全部'),
                   )
@@ -529,8 +529,8 @@ class HistoryContentState extends State<HistoryContent> {
               key: const ValueKey('start-clear'),
               onPressed: _startClearCountdown,
               style: FilledButton.styleFrom(
-                minimumSize: const Size(0, 36),
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                minimumSize: const Size(0, 32),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
               ),
               child: const Text('清空全部'),
             ),
@@ -556,10 +556,10 @@ class HistoryContentState extends State<HistoryContent> {
           onRefresh: _refresh,
           child: ListView.builder(
             padding: EdgeInsets.fromLTRB(
-              widget.compact ? 20 : 16,
+              widget.compact ? 16 : 14,
               4,
-              widget.compact ? 20 : 16,
-              96,
+              widget.compact ? 16 : 14,
+              80,
             ),
             itemCount: items.length,
             itemBuilder: (context, i) => _recordCard(
@@ -570,11 +570,11 @@ class HistoryContentState extends State<HistoryContent> {
         ),
         if (_refreshing)
           Positioned(
-            top: 8,
-            right: 20,
+            top: 6,
+            right: 16,
             child: SizedBox(
-              width: 18,
-              height: 18,
+              width: 16,
+              height: 16,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
                 color: Theme.of(context).colorScheme.primary,
@@ -594,12 +594,12 @@ class HistoryContentState extends State<HistoryContent> {
   Widget _regularCard(HistoryRecord record) {
     final scheme = Theme.of(context).colorScheme;
     return Card(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 8),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         onTap: () => _showDetail(record),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -616,7 +616,7 @@ class HistoryContentState extends State<HistoryContent> {
                 const SizedBox(width: 4),
               ],
               PlatformAvatar(platform: record.platform),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -626,11 +626,12 @@ class HistoryContentState extends State<HistoryContent> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
+                        fontSize: 12.5,
                         fontWeight: FontWeight.w500,
                         color: scheme.onSurface,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     Row(
                       children: [
                         Flexible(
@@ -639,7 +640,7 @@ class HistoryContentState extends State<HistoryContent> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 11,
                               color: scheme.onSurfaceVariant,
                             ),
                           ),
@@ -650,17 +651,17 @@ class HistoryContentState extends State<HistoryContent> {
                 ),
               ),
               if (!_selectionMode) ...[
-                const SizedBox(width: 4),
+                const SizedBox(width: 2),
                 IconButton(
                   tooltip: '复制',
-                  icon: const Icon(Icons.copy, size: 18),
+                  icon: const Icon(Icons.copy, size: 16),
                   onPressed: () => _copy(record),
                 ),
                 IconButton(
                   tooltip: '删除',
                   icon: Icon(
                     Icons.delete_outline,
-                    size: 18,
+                    size: 16,
                     color: scheme.onSurfaceVariant,
                   ),
                   onPressed: () => _delete(record.id),
@@ -678,12 +679,12 @@ class HistoryContentState extends State<HistoryContent> {
     final scheme = Theme.of(context).colorScheme;
     final (_, platformColor) = PlatformAvatar.lookup(record.platform);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 6),
       child: Material(
         color: isSelected ? scheme.primaryContainer : scheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         child: InkWell(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           hoverColor: scheme.onSurface.withValues(alpha: 0.035),
           onTap: () {
             if (_selectionMode) {
@@ -697,7 +698,7 @@ class HistoryContentState extends State<HistoryContent> {
           },
           child: Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
               border: Border.all(
                 color: isSelected
                     ? scheme.primary.withValues(alpha: 0.55)
@@ -715,14 +716,14 @@ class HistoryContentState extends State<HistoryContent> {
                     decoration: BoxDecoration(
                       color: platformColor,
                       borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(12),
-                        bottomLeft: Radius.circular(12),
+                        topLeft: Radius.circular(10),
+                        bottomLeft: Radius.circular(10),
                       ),
                     ),
                   ),
                   if (_selectionMode)
                     Padding(
-                      padding: const EdgeInsets.only(left: 8, top: 6),
+                      padding: const EdgeInsets.only(left: 6, top: 4),
                       child: Checkbox(
                         value: _selected.contains(record.id),
                         onChanged: (_) => setState(() {
@@ -735,8 +736,8 @@ class HistoryContentState extends State<HistoryContent> {
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
+                        horizontal: 12,
+                        vertical: 9,
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -746,19 +747,19 @@ class HistoryContentState extends State<HistoryContent> {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontSize: 13.5,
+                              fontSize: 12.5,
                               fontWeight: FontWeight.w500,
                               height: 1.45,
                               color: scheme.onSurface,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 2),
                           Text(
                             _metaLine(record),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontSize: 11.5,
+                              fontSize: 10.5,
                               color: scheme.onSurfaceVariant,
                             ),
                           ),
@@ -769,7 +770,7 @@ class HistoryContentState extends State<HistoryContent> {
                   // 桌面端操作：默认低调，悬停时由卡片底色衬托。
                   if (!_selectionMode)
                     Padding(
-                      padding: const EdgeInsets.only(right: 4),
+                      padding: const EdgeInsets.only(right: 2),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -777,7 +778,7 @@ class HistoryContentState extends State<HistoryContent> {
                             tooltip: '复制',
                             icon: Icon(
                               Icons.copy_rounded,
-                              size: 18,
+                              size: 16,
                               color: scheme.onSurfaceVariant,
                             ),
                             onPressed: () => _copy(record),
@@ -786,7 +787,7 @@ class HistoryContentState extends State<HistoryContent> {
                             tooltip: '删除',
                             icon: Icon(
                               Icons.delete_outline_rounded,
-                              size: 18,
+                              size: 16,
                               color: scheme.onSurfaceVariant,
                             ),
                             onPressed: () => _delete(record.id),
@@ -825,8 +826,8 @@ class HistoryContentState extends State<HistoryContent> {
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            PlatformAvatar(platform: d.platform, size: 28),
-            const SizedBox(width: 10),
+            PlatformAvatar(platform: d.platform, size: 24),
+            const SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -838,7 +839,7 @@ class HistoryContentState extends State<HistoryContent> {
                   Text(
                     TimeFormat.full(d.receivedAt),
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 11,
                       fontWeight: FontWeight.w400,
                       color: scheme.onSurfaceVariant,
                     ),
@@ -854,18 +855,18 @@ class HistoryContentState extends State<HistoryContent> {
             children: [
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: scheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: scheme.outlineVariant),
                 ),
                 child: SelectableText(
                   d.content ?? d.contentPreview,
-                  style: const TextStyle(fontSize: 14, height: 1.5),
+                  style: const TextStyle(fontSize: 12.5, height: 1.55),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               MetaRow(
                 icon: Icons.travel_explore,
                 label: '来源',
@@ -928,25 +929,25 @@ class _NeedsKeyBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      margin: const EdgeInsets.fromLTRB(14, 6, 14, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: scheme.errorContainer,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
         children: [
           Icon(
             Icons.warning_amber_rounded,
-            size: 18,
+            size: 16,
             color: scheme.onErrorContainer,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           Expanded(
             child: Text(
               'Key 无效或已被重置，请在设置中更新',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 12,
                 color: scheme.onErrorContainer,
                 fontWeight: FontWeight.w500,
               ),
@@ -971,13 +972,13 @@ class _EmptyState extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 56,
-              height: 56,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 color: scheme.primaryContainer,
                 shape: BoxShape.circle,
@@ -986,27 +987,27 @@ class _EmptyState extends StatelessWidget {
                 searching
                     ? Icons.search_off_rounded
                     : Icons.content_paste_off_rounded,
-                size: 24,
+                size: 20,
                 color: scheme.primary,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Text(
               searching ? '没有匹配的内容' : '暂无历史记录',
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             Text(
               searching ? '换个关键词试试' : '复制文本后会自动同步到这里',
               textAlign: TextAlign.center,
               style: TextStyle(color: scheme.onSurfaceVariant),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             OutlinedButton.icon(
               onPressed: onRefresh,
-              icon: const Icon(Icons.refresh, size: 16),
+              icon: const Icon(Icons.refresh, size: 14),
               label: const Text('刷新'),
             ),
           ],
@@ -1028,40 +1029,40 @@ class _ErrorState extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 56,
-              height: 56,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 color: scheme.errorContainer.withValues(alpha: 0.5),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.cloud_off_rounded,
-                size: 24,
+                size: 20,
                 color: scheme.error,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Text(
               '加载失败',
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13),
+              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             FilledButton.icon(
               onPressed: onRetry,
-              icon: const Icon(Icons.refresh, size: 16),
+              icon: const Icon(Icons.refresh, size: 14),
               label: const Text('重试'),
             ),
           ],

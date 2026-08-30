@@ -113,7 +113,7 @@ class _DetailPaneState extends State<DetailPane> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Container(
-      width: 380,
+      width: 360,
       decoration: BoxDecoration(
         color: scheme.surface,
         border: Border(
@@ -137,19 +137,19 @@ class _DetailPaneState extends State<DetailPane> {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
+      padding: const EdgeInsets.fromLTRB(14, 10, 8, 10),
       child: Row(
         children: [
           Icon(
             Icons.info_outline_rounded,
-            size: 16,
+            size: 15,
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
           const SizedBox(width: 8),
           Text(
             '详情',
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.4,
               color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -158,7 +158,7 @@ class _DetailPaneState extends State<DetailPane> {
           const Spacer(),
           IconButton(
             tooltip: '关闭详情（Esc）',
-            icon: const Icon(Icons.close_rounded, size: 18),
+            icon: const Icon(Icons.close_rounded, size: 16),
             visualDensity: VisualDensity.compact,
             onPressed: widget.onClose,
           ),
@@ -173,16 +173,16 @@ class _DetailPaneState extends State<DetailPane> {
       return _buildEmptyState();
     }
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildPlatformHeader(r),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           _buildContentBlock(r),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           _buildMetaList(r),
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
           _buildActions(r),
         ],
       ),
@@ -193,27 +193,27 @@ class _DetailPaneState extends State<DetailPane> {
     final scheme = Theme.of(context).colorScheme;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 56,
-              height: 56,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 color: scheme.surfaceContainerHighest,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.touch_app_rounded,
-                size: 24,
+                size: 20,
                 color: scheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             Text(
               '选择条目查看详情',
-              style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
+              style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
             ),
           ],
         ),
@@ -227,8 +227,8 @@ class _DetailPaneState extends State<DetailPane> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        PlatformAvatar(platform: r.platform, size: 40),
-        const SizedBox(width: 12),
+        PlatformAvatar(platform: r.platform, size: 36),
+        const SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -236,7 +236,7 @@ class _DetailPaneState extends State<DetailPane> {
               Text(
                 r.platform.isEmpty ? 'DriftClip' : r.platform,
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: FontWeight.w700,
                   color: color,
                 ),
@@ -244,7 +244,7 @@ class _DetailPaneState extends State<DetailPane> {
               const SizedBox(height: 2),
               Text(
                 TimeFormat.full(r.receivedAt),
-                style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+                style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
               ),
             ],
           ),
@@ -258,25 +258,25 @@ class _DetailPaneState extends State<DetailPane> {
     final text = _fullContent ?? r.contentPreview;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: scheme.outlineVariant),
       ),
       child: Stack(
         children: [
           SelectableText(
             text,
-            style: const TextStyle(fontSize: 13.5, height: 1.55),
+            style: const TextStyle(fontSize: 12.5, height: 1.55),
           ),
           if (_loadingDetail)
             Positioned(
               top: 0,
               right: 0,
               child: SizedBox(
-                width: 14,
-                height: 14,
+                width: 12,
+                height: 12,
                 child: CircularProgressIndicator(
                   strokeWidth: 1.8,
                   color: scheme.primary,
@@ -333,11 +333,11 @@ class _DetailPaneState extends State<DetailPane> {
         Expanded(
           child: FilledButton.icon(
             onPressed: _copyCurrent,
-            icon: const Icon(Icons.copy_rounded, size: 16),
+            icon: const Icon(Icons.copy_rounded, size: 14),
             label: const Text('复制'),
             style: FilledButton.styleFrom(
               minimumSize: const Size(0, 36),
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
             ),
           ),
         ),
@@ -347,7 +347,7 @@ class _DetailPaneState extends State<DetailPane> {
             onPressed: _deleteCurrent,
             icon: Icon(
               Icons.delete_outline_rounded,
-              size: 16,
+              size: 14,
               color: Theme.of(context).colorScheme.error,
             ),
             label: Text(
@@ -356,7 +356,7 @@ class _DetailPaneState extends State<DetailPane> {
             ),
             style: OutlinedButton.styleFrom(
               minimumSize: const Size(0, 36),
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               side: BorderSide(
                 color: Theme.of(
                   context,
