@@ -2,8 +2,19 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ApiError, auth as authApi } from '../lib/api'
-import { useAuth } from '../lib/auth'
+
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { ApiError, auth as authApi } from '@/lib/api'
+import { useAuth } from '@/lib/auth'
 
 export function SettingsPage() {
   const { logout } = useAuth()
@@ -11,13 +22,11 @@ export function SettingsPage() {
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [error, setError] = useState('')
-  const [ok, setOk] = useState('')
   const [busy, setBusy] = useState(false)
 
   async function onChangePassword(e: FormEvent) {
     e.preventDefault()
     setError('')
-    setOk('')
     setBusy(true)
     try {
       await authApi.changePassword(currentPassword, newPassword)
@@ -36,44 +45,68 @@ export function SettingsPage() {
   }
 
   return (
-    <section>
-      <h1>设置</h1>
+    <section className="flex flex-col gap-5">
+      <h1 className="text-display font-heavy tracking-[-0.4px] text-foreground m-0">
+        设置
+      </h1>
 
-      <form className="card auth-card" onSubmit={(e) => void onChangePassword(e)}>
-        <h2>修改密码</h2>
-        <p className="muted">修改成功后当前浏览器的会话也会立即失效，需要重新登录。</p>
-        <label>
-          当前密码
-          <input
-            type="password"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            required
-            autoComplete="current-password"
-          />
-        </label>
-        <label>
-          新密码
-          <input
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            required
-            autoComplete="new-password"
-          />
-        </label>
-        {error && <p className="error">{error}</p>}
-        {ok && <p className="ok">{ok}</p>}
-        <button type="submit" disabled={busy}>
-          {busy ? '提交中…' : '修改密码'}
-        </button>
-      </form>
+      <Card className="w-full max-w-[480px]">
+        <CardHeader>
+          <CardTitle>修改密码</CardTitle>
+          <CardDescription>
+            修改成功后当前浏览器的会话也会立即失效，需要重新登录。
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form
+            className="flex flex-col gap-3.5"
+            onSubmit={(e) => void onChangePassword(e)}
+          >
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="settings-current-password">当前密码</Label>
+              <Input
+                id="settings-current-password"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="settings-new-password">新密码</Label>
+              <Input
+                id="settings-new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                autoComplete="new-password"
+              />
+            </div>
+            {error && (
+              <p className="text-body-sm text-destructive" role="alert">
+                {error}
+              </p>
+            )}
+            <Button type="submit" disabled={busy} className="mt-1">
+              {busy ? '提交中…' : '修改密码'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
 
-      <div className="card auth-card">
-        <h2>退出登录</h2>
-        <p className="muted">仅退出当前浏览器会话。</p>
-        <button onClick={() => void onLogout()}>退出登录</button>
-      </div>
+      <Card className="w-full max-w-[480px]">
+        <CardHeader>
+          <CardTitle>退出登录</CardTitle>
+          <CardDescription>仅退出当前浏览器会话。</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" onClick={() => void onLogout()}>
+            退出登录
+          </Button>
+        </CardContent>
+      </Card>
     </section>
   )
 }

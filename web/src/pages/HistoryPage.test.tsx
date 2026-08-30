@@ -57,7 +57,9 @@ describe('HistoryPage', () => {
     render(<HistoryPage />)
     await screen.findByText('剪贴板预览内容')
 
-    await user.selectOptions(screen.getByLabelText('平台筛选'), 'macos')
+    // Radix Select 改为 combobox：点击 trigger，弹出后点击选项
+    await user.click(screen.getByRole('combobox', { name: '平台筛选' }))
+    await user.click(screen.getByRole('option', { name: 'macos' }))
     await user.type(screen.getByLabelText('正文筛选'), 'hello')
     await user.click(screen.getByRole('button', { name: '应用' }))
 
@@ -79,7 +81,7 @@ describe('HistoryPage', () => {
     render(<HistoryPage />)
     await screen.findByText('剪贴板预览内容')
 
-    await user.click(screen.getByLabelText('选择记录 1'))
+    await user.click(screen.getByRole('checkbox', { name: '选择记录 1' }))
     await user.click(screen.getByRole('button', { name: /删除所选/ }))
 
     const call = fetchMock.mock.calls.find(

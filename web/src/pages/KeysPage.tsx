@@ -3,7 +3,12 @@
 //   - 有 Key 时提供「重置 Key」，点击后 5 秒倒计时确认（Spec §2.2）；
 //   - 完整 Key 只在生成/重置完成时展示一次，不缓存到本地存储。
 import { useEffect, useState } from 'react'
-import { ApiError, keys as keysApi } from '../lib/api'
+import { Copy, Loader2 } from 'lucide-react'
+
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ApiError, keys as keysApi } from '@/lib/api'
 
 export function KeysPage() {
   const [hasKey, setHasKey] = useState<boolean | null>(null)
@@ -12,6 +17,7 @@ export function KeysPage() {
   const [busy, setBusy] = useState(false)
   const [confirming, setConfirming] = useState(false)
   const [countdown, setCountdown] = useState(0)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     keysApi
@@ -59,59 +65,102 @@ export function KeysPage() {
     }
   }
 
+  async function copyShown() {
+    try {
+      await navigator.clipboard.writeText(shownKey)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1500)
+    } catch {
+      // 剪贴板不可用时静默
+    }
+  }
+
   if (hasKey === null) {
-    return <p className="muted">加载中…</p>
+    return (
+      <p className="inline-flex items-center gap-2 text-body-sm text-muted-foreground">
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        加载中…
+      </p>
+    )
   }
 
   return (
-    <section>
-      <h1>Key 管理</h1>
-      <p className="muted">
-        原生客户端使用 Key 同步历史。完整 Key 只在生成或重置时展示一次，请立即保存；服务端不保存完整
-        Key，遗失后只能重置。
-      </p>
-
-      {error && <p className="error">{error}</p>}
-
-      <div className="card key-card">
-        {hasKey ? (
-          <>
-            <p>
-              Key 状态：<strong>已启用</strong>
-            </p>
-            <div className="actions">
-              {confirming ? (
-                countdown > 0 ? (
-                  <button disabled>重置 Key（{countdown}s）</button>
-                ) : (
-                  <button onClick={() => void doReset()} disabled={busy}>
-                    {busy ? '重置中…' : '确认重置 Key'}
-                  </button>
-                )
-              ) : (
-                <button onClick={() => setConfirming(true)}>重置 Key</button>
-              )}
-            </div>
-          </>
-        ) : (
-          <div className="actions">
-            <button onClick={() => void generate()} disabled={busy}>
-              {busy ? '生成中…' : '生成初始 Key'}
-            </button>
-          </div>
-        )}
+    <section className="flex flex-col gap-5">
+      <div>
+        <h1 className="text-display font-heavy tracking-[-0.4px] text-foreground m-0">
+          Key 管理
+        </h1>
+        <p className="mt-1.5 text-body-sm text-muted-foreground">
+          原生客户端使用 Key 同步历史。完整 Key 只在生成或重置时展示一次，请立即保存；服务端不保存完整
+          Key，遗失后只能重置。
+        </p>
       </div>
 
+      {error && (
+        <Alert variant="destructive">
+          <AlertTitle>出错了</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {hasKey ? 'Key 状态：已启用' : '尚未生成 Key'}
+          </CardTitle>
+          {hasKey && (
+            <CardDescription>
+              现有 Key 仍可同步客户端；重置会立即作废旧 Key。
+            </CardDescription>
+          )}
+        </CardHeader>
+        <CardContent>
+          {hasKey ? (
+            <div className="flex items-center gap-2">
+              {confirming ? (
+                countdown > 0 ? (
+                  <Button disabled variant="danger">
+                    重置 Key（{countdown}s）
+                  </Button>
+                ) : (
+                  <Button onClick={() => void doReset()} disabled={busy} variant="danger">
+                    {busy ? '重置中…' : '确认重置 Key'}
+                  </Button>
+                )
+              ) : (
+                <Button onClick={() => setConfirming(true)} variant="outline">
+                  重置 Key
+                </Button>
+              )}
+            </div>
+          ) : (
+            <Button onClick={() => void generate()} disabled={busy}>
+              {busy ? '生成中…' : '生成初始 Key'}
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+
       {shownKey && (
-        <div className="card key-once">
-          <p className="warn">
-            请立即复制并妥善保存以下完整 Key（只展示这一次）。服务端不保存完整 Key，遗失只能重置。
-          </p>
-          <code>{shownKey}</code>
-          <div className="actions">
-            <button onClick={() => void navigator.clipboard.writeText(shownKey)}>复制 Key</button>
-          </div>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>新的 Key</CardTitle>
+            <CardDescription>
+              请立即复制并妥善保存以下完整 Key（只展示这一次）。服务端不保存完整 Key，遗失只能重置。
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            <code className="block select-all break-all rounded-md border border-warn-border bg-warn-bg px-3 py-3 font-mono text-body-sm text-warn">
+              {shownKey}
+            </code>
+            <div>
+              <Button onClick={() => void copyShown()} size="sm">
+                <Copy className="h-3.5 w-3.5" />
+                {copied ? '已复制' : '复制 Key'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
     </section>
   )
