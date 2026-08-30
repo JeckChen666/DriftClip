@@ -8,7 +8,8 @@ export function Layout() {
     <div className="app">
       <header className="topbar">
         <Link to="/" className="brand">
-          DriftClip
+          <img className="brand-mark" src="/driftclip-logo.png" alt="" />
+          <span>DriftClip</span>
         </Link>
         <nav>
           <NavLink to="/" end>
