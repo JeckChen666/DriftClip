@@ -138,13 +138,39 @@ String _generateFlutterPalette(
     darkExprs.add('        $key: Color(0x${_normalizeHex(dark)}),');
   }
 
-  final lightRawExprs = <String>[];
-  final darkRawExprs = <String>[];
+  // colorRaw 拆成两类：
+  //  - 成对键（xxxLight/xxxDark）→ 生成单一字段 xxx，按亮暗取值；
+  //  - 单值键 → 生成同名字段，亮暗同值。
+  final pairedRaw = <String, List<String>>{};
+  final singleRaw = <String, String>{};
   for (final entry in _sorted(colorRaw)) {
     final key = entry.key;
     final v = entry.value as String;
-    lightRawExprs.add('        $key: Color(0x${_normalizeHex(v)}),');
-    darkRawExprs.add('        $key: Color(0x${_normalizeHex(v)}),');
+    if (key.endsWith('Light')) {
+      final base = key.substring(0, key.length - 5);
+      pairedRaw.putIfAbsent(base, () => ['', ''])[0] = v;
+    } else if (key.endsWith('Dark')) {
+      final base = key.substring(0, key.length - 4);
+      pairedRaw.putIfAbsent(base, () => ['', ''])[1] = v;
+    } else {
+      singleRaw[key] = v;
+    }
+  }
+  final rawFields = <String>[for (final base in pairedRaw.keys.toList()..sort()) base]
+    ..addAll(singleRaw.keys.toList()..sort());
+
+  final lightRawExprs = <String>[];
+  final darkRawExprs = <String>[];
+  for (final field in rawFields) {
+    if (pairedRaw.containsKey(field)) {
+      final pair = pairedRaw[field]!;
+      lightRawExprs.add('        $field: Color(0x${_normalizeHex(pair[0])}),');
+      darkRawExprs.add('        $field: Color(0x${_normalizeHex(pair[1])}),');
+    } else {
+      final v = singleRaw[field]!;
+      lightRawExprs.add('        $field: Color(0x${_normalizeHex(v)}),');
+      darkRawExprs.add('        $field: Color(0x${_normalizeHex(v)}),');
+    }
   }
 
   final ring = tokens['ring'] as Map<String, dynamic>;
@@ -164,12 +190,10 @@ String _generateFlutterPalette(
     ..writeln('class Palette {')
     ..writeln(dartKeys.join('\n'))
     ..writeln('')
-    ..writeln('  /// 焦点环 / 投影等不在 ColorScheme 派生里的辅助 token。')
-    ..writeln('  final Color switchTrackOff;')
-    ..writeln('  final Color snackBar;')
-    ..writeln('  final Color snackBarText;')
-    ..writeln('  final Color accentPurpleBorder;')
-    ..writeln('  final Color accentPurpleText;')
+    ..writeln('  /// 焦点环 / 投影 / 平台色等不在 ColorScheme 派生里的辅助 token。')
+    ..writeln(
+      rawFields.map((f) => '  final Color $f;').join('\n'),
+    )
     ..writeln('')
     ..writeln('  const Palette({')
     ..writeln('    required this.canvas,')
@@ -196,59 +220,19 @@ String _generateFlutterPalette(
     ..writeln('    required this.warnBorder,')
     ..writeln('    required this.warnText,')
     ..writeln('    required this.shadow,')
-    ..writeln('    required this.switchTrackOff,')
-    ..writeln('    required this.snackBar,')
-    ..writeln('    required this.snackBarText,')
-    ..writeln('    required this.accentPurpleBorder,')
-    ..writeln('    required this.accentPurpleText,')
+    ..writeln(
+      rawFields.map((f) => '    required this.$f,').join('\n'),
+    )
     ..writeln('  });')
     ..writeln('')
     ..writeln('  factory Palette.light() => const Palette(')
     ..writeln(lightExprs.join('\n'))
-    ..writeln(
-      '        switchTrackOff: '
-      'Color(0x${_normalizeHex(colorRaw['switchTrackOffLight'] as String)}),',
-    )
-    ..writeln(
-      '        snackBar: '
-      'Color(0x${_normalizeHex(colorRaw['snackBarLight'] as String)}),',
-    )
-    ..writeln(
-      '        snackBarText: '
-      'Color(0x${_normalizeHex(colorRaw['snackBarText'] as String)}),',
-    )
-    ..writeln(
-      '        accentPurpleBorder: '
-      'Color(0x${_normalizeHex(colorRaw['accentPurpleBorder'] as String)}),',
-    )
-    ..writeln(
-      '        accentPurpleText: '
-      'Color(0x${_normalizeHex(colorRaw['accentPurpleText'] as String)}),',
-    )
+    ..writeln(lightRawExprs.join('\n'))
     ..writeln('      );')
     ..writeln('')
     ..writeln('  factory Palette.dark() => const Palette(')
     ..writeln(darkExprs.join('\n'))
-    ..writeln(
-      '        switchTrackOff: '
-      'Color(0x${_normalizeHex(colorRaw['switchTrackOffDark'] as String)}),',
-    )
-    ..writeln(
-      '        snackBar: '
-      'Color(0x${_normalizeHex(colorRaw['snackBarDark'] as String)}),',
-    )
-    ..writeln(
-      '        snackBarText: '
-      'Color(0x${_normalizeHex(colorRaw['snackBarText'] as String)}),',
-    )
-    ..writeln(
-      '        accentPurpleBorder: '
-      'Color(0x${_normalizeHex(colorRaw['accentPurpleBorder'] as String)}),',
-    )
-    ..writeln(
-      '        accentPurpleText: '
-      'Color(0x${_normalizeHex(colorRaw['accentPurpleText'] as String)}),',
-    )
+    ..writeln(darkRawExprs.join('\n'))
     ..writeln('      );')
     ..writeln('}');
 

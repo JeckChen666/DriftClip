@@ -47,9 +47,18 @@
   --icon-xxl: 24px;
   --accent-purple-border: #c4b5fd;
   --accent-purple-text: #7c3aed;
+  --platform-amber: #f59e0b;
+  --platform-blue: #2563eb;
+  --platform-gray: #64748b;
+  --platform-green: #16a34a;
+  --platform-neutral: #6b7280;
+  --platform-purple: #8b5cf6;
+  --platform-teal: #0d9488;
   --snack-bar-dark: #2a2f38;
   --snack-bar-light: #1f242c;
   --snack-bar-text: #f2f4f7;
+  --status-amber: #d97706;
+  --status-green: #16a34a;
   --switch-track-off-dark: #3a4150;
   --switch-track-off-light: #d6dae1;
 }
@@ -100,9 +109,18 @@
     --icon-xxl: 24px;
     --accent-purple-border: #c4b5fd;
     --accent-purple-text: #7c3aed;
+    --platform-amber: #f59e0b;
+    --platform-blue: #2563eb;
+    --platform-gray: #64748b;
+    --platform-green: #16a34a;
+    --platform-neutral: #6b7280;
+    --platform-purple: #8b5cf6;
+    --platform-teal: #0d9488;
     --snack-bar-dark: #2a2f38;
     --snack-bar-light: #1f242c;
     --snack-bar-text: #f2f4f7;
+    --status-amber: #d97706;
+    --status-green: #16a34a;
     --switch-track-off-dark: #3a4150;
     --switch-track-off-light: #d6dae1;
   }

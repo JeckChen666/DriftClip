@@ -32,12 +32,21 @@ class Palette {
   final Color warnBorder;
   final Color warnText;
 
-  /// 焦点环 / 投影等不在 ColorScheme 派生里的辅助 token。
-  final Color switchTrackOff;
+  /// 焦点环 / 投影 / 平台色等不在 ColorScheme 派生里的辅助 token。
   final Color snackBar;
-  final Color snackBarText;
+  final Color switchTrackOff;
   final Color accentPurpleBorder;
   final Color accentPurpleText;
+  final Color platformAmber;
+  final Color platformBlue;
+  final Color platformGray;
+  final Color platformGreen;
+  final Color platformNeutral;
+  final Color platformPurple;
+  final Color platformTeal;
+  final Color snackBarText;
+  final Color statusAmber;
+  final Color statusGreen;
 
   const Palette({
     required this.canvas,
@@ -64,11 +73,20 @@ class Palette {
     required this.warnBorder,
     required this.warnText,
     required this.shadow,
-    required this.switchTrackOff,
     required this.snackBar,
-    required this.snackBarText,
+    required this.switchTrackOff,
     required this.accentPurpleBorder,
     required this.accentPurpleText,
+    required this.platformAmber,
+    required this.platformBlue,
+    required this.platformGray,
+    required this.platformGreen,
+    required this.platformNeutral,
+    required this.platformPurple,
+    required this.platformTeal,
+    required this.snackBarText,
+    required this.statusAmber,
+    required this.statusGreen,
   });
 
   factory Palette.light() => const Palette(
@@ -96,11 +114,20 @@ class Palette {
     warnBg: Color(0xFFFFF7E6),
     warnBorder: Color(0xFFF5C96B),
     warnText: Color(0xFF8A5A00),
-    switchTrackOff: Color(0xFFD6DAE1),
     snackBar: Color(0xFF1F242C),
-    snackBarText: Color(0xFFF2F4F7),
+    switchTrackOff: Color(0xFFD6DAE1),
     accentPurpleBorder: Color(0xFFC4B5FD),
     accentPurpleText: Color(0xFF7C3AED),
+    platformAmber: Color(0xFFF59E0B),
+    platformBlue: Color(0xFF2563EB),
+    platformGray: Color(0xFF64748B),
+    platformGreen: Color(0xFF16A34A),
+    platformNeutral: Color(0xFF6B7280),
+    platformPurple: Color(0xFF8B5CF6),
+    platformTeal: Color(0xFF0D9488),
+    snackBarText: Color(0xFFF2F4F7),
+    statusAmber: Color(0xFFD97706),
+    statusGreen: Color(0xFF16A34A),
   );
 
   factory Palette.dark() => const Palette(
@@ -128,10 +155,19 @@ class Palette {
     warnBg: Color(0xFF2B2415),
     warnBorder: Color(0xFF8A6D2F),
     warnText: Color(0xFFF0C674),
-    switchTrackOff: Color(0xFF3A4150),
     snackBar: Color(0xFF2A2F38),
-    snackBarText: Color(0xFFF2F4F7),
+    switchTrackOff: Color(0xFF3A4150),
     accentPurpleBorder: Color(0xFFC4B5FD),
     accentPurpleText: Color(0xFF7C3AED),
+    platformAmber: Color(0xFFF59E0B),
+    platformBlue: Color(0xFF2563EB),
+    platformGray: Color(0xFF64748B),
+    platformGreen: Color(0xFF16A34A),
+    platformNeutral: Color(0xFF6B7280),
+    platformPurple: Color(0xFF8B5CF6),
+    platformTeal: Color(0xFF0D9488),
+    snackBarText: Color(0xFFF2F4F7),
+    statusAmber: Color(0xFFD97706),
+    statusGreen: Color(0xFF16A34A),
   );
 }
