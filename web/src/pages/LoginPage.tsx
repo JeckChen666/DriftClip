@@ -1,10 +1,12 @@
 // 登录页：邮箱 + 密码，成功跳转历史页。
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { AlertCircle } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 
+import { AuthShell } from '@/components/AuthShell'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ApiError } from '@/lib/api'
@@ -33,52 +35,50 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex justify-center pt-[10vh]">
-      <Card className="w-full max-w-[400px]">
-        <CardHeader>
-          <CardTitle>登录 DriftClip</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form className="flex flex-col gap-3.5" onSubmit={(e) => void onSubmit(e)}>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="login-email">邮箱</Label>
-              <Input
-                id="login-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="username"
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="login-password">密码</Label>
-              <Input
-                id="login-password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-              />
-            </div>
-            {error && (
-              <p className="mt-2 text-body-sm text-destructive" role="alert">
-                {error}
-              </p>
-            )}
-            <Button type="submit" disabled={busy} className="mt-1">
-              {busy ? '登录中…' : '登录'}
-            </Button>
-            <CardDescription className="text-center">
-              还没有账户？{' '}
-              <Link to="/register" className="text-primary hover:underline">
-                注册
-              </Link>
-            </CardDescription>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+    <AuthShell
+      title="登录 DriftClip"
+      footer={
+        <>
+          还没有账户？{' '}
+          <Link to="/register" className="font-medium text-primary hover:underline">
+            注册
+          </Link>
+        </>
+      }
+    >
+      <form className="flex flex-col gap-3.5" onSubmit={(e) => void onSubmit(e)}>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="login-email">邮箱</Label>
+          <Input
+            id="login-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="username"
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="login-password">密码</Label>
+          <Input
+            id="login-password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="current-password"
+          />
+        </div>
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="size-icon-md" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        <Button type="submit" disabled={busy} className="mt-1">
+          {busy ? '登录中…' : '登录'}
+        </Button>
+      </form>
+    </AuthShell>
   )
 }

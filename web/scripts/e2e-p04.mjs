@@ -63,7 +63,7 @@ try {
   await page.getByText('gamma 内容').waitFor({ timeout: 5000 })
   await page.getByLabel('全选').check()
   await page.getByRole('button', { name: /删除所选/ }).click()
-  await page.getByText('暂无历史记录。').waitFor({ timeout: 10000 })
+  await page.getByText('暂无历史记录').waitFor({ timeout: 10000 })
   await page.screenshot({ path: `${SHOT_DIR}/3-after-batch-delete.png` })
 
   // 4. 清空全部：5s 倒计时确认
@@ -82,7 +82,7 @@ try {
   await page.screenshot({ path: `${SHOT_DIR}/4-clear-countdown.png` })
   await page.getByRole('button', { name: '确认清空全部' }).waitFor({ timeout: 10000 })
   await page.getByRole('button', { name: '确认清空全部' }).click()
-  await page.getByText('暂无历史记录。').waitFor({ timeout: 10000 })
+  await page.getByText('暂无历史记录').waitFor({ timeout: 10000 })
   await page.screenshot({ path: `${SHOT_DIR}/5-after-clear.png` })
 
   console.log('E2E P04 OK')

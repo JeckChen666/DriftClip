@@ -3,22 +3,21 @@ import { cva, type VariantProps } from 'class-variance-authority'
 
 import { cn } from '@/lib/utils'
 
+// 色彩全部走令牌 utility，不再用内联 color-mix；
+// 淡底用 /10 透明度叠加，亮暗色下都能自洽。
 const badgeVariants = cva(
-  'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-caption font-medium transition-colors',
+  'inline-flex items-center gap-1 rounded-full border px-2 py-px text-caption font-medium leading-[1.5] transition-colors',
   {
     variants: {
       variant: {
-        default:
-          'border-transparent bg-secondary text-secondary-foreground',
-        primary:
-          'border-transparent bg-accent text-accent-foreground',
-        outline: 'border-border text-muted-foreground bg-secondary',
-        success:
-          'text-success',
+        default: 'border-transparent bg-secondary text-secondary-foreground',
+        primary: 'border-transparent bg-accent text-accent-foreground',
+        outline: 'border-border bg-transparent text-muted-foreground',
+        success: 'border-success/25 bg-success/10 text-success',
         danger:
-          'text-destructive',
+          'border-destructive/25 bg-destructive-subtle text-destructive-subtle-foreground',
         manual:
-          'border-accent-purple-border/40 text-accent-purple',
+          'border-accent-purple-border/50 bg-accent-purple/10 text-accent-purple',
       },
     },
     defaultVariants: {
@@ -31,31 +30,8 @@ export interface BadgeProps
   extends React.HTMLAttributes<HTMLSpanElement>,
     VariantProps<typeof badgeVariants> {}
 
-function Badge({ className, variant, style, ...props }: BadgeProps) {
-  const tint =
-    variant === 'danger'
-      ? {
-          backgroundColor:
-            'color-mix(in srgb, var(--danger) 10%, transparent)',
-        }
-      : variant === 'success'
-        ? {
-            backgroundColor:
-              'color-mix(in srgb, var(--success) 10%, transparent)',
-          }
-        : variant === 'manual'
-          ? {
-              backgroundColor:
-                'color-mix(in srgb, var(--accent-purple-text) 8%, transparent)',
-            }
-          : undefined
-  return (
-    <span
-      className={cn(badgeVariants({ variant }), className)}
-      style={{ ...tint, ...style }}
-      {...props}
-    />
-  )
+function Badge({ className, variant, ...props }: BadgeProps) {
+  return <span className={cn(badgeVariants({ variant }), className)} {...props} />
 }
 
 export { Badge, badgeVariants }

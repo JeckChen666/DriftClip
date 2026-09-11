@@ -1,8 +1,10 @@
 // 设置页：修改密码（需当前密码，成功后所有会话失效需重新登录）、退出登录。
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { AlertCircle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -85,9 +87,10 @@ export function SettingsPage() {
               />
             </div>
             {error && (
-              <p className="text-body-sm text-destructive" role="alert">
-                {error}
-              </p>
+              <Alert variant="destructive">
+                <AlertCircle className="size-icon-md" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
             <Button type="submit" disabled={busy} className="mt-1">
               {busy ? '提交中…' : '修改密码'}

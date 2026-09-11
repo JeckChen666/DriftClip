@@ -66,3 +66,6 @@ yarn-error.log*
 
 # --- 临时产物（ImageGen 草稿等）---
 /output/
+
+# --- ZCode 会话产物 ---
+.zcode/

@@ -3,21 +3,23 @@
 //   - 有 Key 时提供「重置 Key」，点击后 5 秒倒计时确认（Spec §2.2）；
 //   - 完整 Key 只在生成/重置完成时展示一次，不缓存到本地存储。
 import { useEffect, useState } from 'react'
-import { Copy, Loader2 } from 'lucide-react'
+import { AlertCircle, Copy, KeyRound, ShieldCheck } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useToast } from '@/components/ui/toast'
 import { ApiError, keys as keysApi } from '@/lib/api'
 
 export function KeysPage() {
+  const { toast } = useToast()
   const [hasKey, setHasKey] = useState<boolean | null>(null)
   const [shownKey, setShownKey] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [confirming, setConfirming] = useState(false)
   const [countdown, setCountdown] = useState(0)
-  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     keysApi
@@ -68,19 +70,29 @@ export function KeysPage() {
   async function copyShown() {
     try {
       await navigator.clipboard.writeText(shownKey)
-      setCopied(true)
-      window.setTimeout(() => setCopied(false), 1500)
+      toast('Key 已复制到剪贴板')
     } catch {
-      // 剪贴板不可用时静默
+      toast('复制失败，请手动选中复制', 'error')
     }
   }
 
   if (hasKey === null) {
     return (
-      <p className="inline-flex items-center gap-2 text-body-sm text-muted-foreground">
-        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        加载中…
-      </p>
+      <section className="flex flex-col gap-5" aria-busy="true">
+        <div className="flex flex-col gap-2">
+          <Skeleton className="h-7 w-28" />
+          <Skeleton className="h-4 w-3/4" />
+        </div>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-4 w-64" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-control-lg w-28 rounded-md" />
+          </CardContent>
+        </Card>
+      </section>
     )
   }
 
@@ -98,6 +110,7 @@ export function KeysPage() {
 
       {error && (
         <Alert variant="destructive">
+          <AlertCircle className="size-icon-md" />
           <AlertTitle>出错了</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
@@ -105,7 +118,16 @@ export function KeysPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <span
+              className={
+                hasKey
+                  ? 'inline-flex size-7 items-center justify-center rounded-sm bg-success/10 text-success'
+                  : 'inline-flex size-7 items-center justify-center rounded-sm bg-secondary text-muted-foreground'
+              }
+            >
+              {hasKey ? <ShieldCheck className="size-icon-md" /> : <KeyRound className="size-icon-md" />}
+            </span>
             {hasKey ? 'Key 状态：已启用' : '尚未生成 Key'}
           </CardTitle>
           {hasKey && (
@@ -155,8 +177,8 @@ export function KeysPage() {
             </code>
             <div>
               <Button onClick={() => void copyShown()} size="sm">
-                <Copy className="h-3.5 w-3.5" />
-                {copied ? '已复制' : '复制 Key'}
+                <Copy className="size-icon-sm" />
+                复制 Key
               </Button>
             </div>
           </CardContent>

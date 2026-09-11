@@ -156,6 +156,6 @@ describe('HistoryPage', () => {
       return { status: 404, body: { error: 'x' } }
     })
     render(<HistoryPage />)
-    expect(await screen.findByText('暂无历史记录。')).toBeInTheDocument()
+    expect(await screen.findByText('暂无历史记录')).toBeInTheDocument()
   })
 })

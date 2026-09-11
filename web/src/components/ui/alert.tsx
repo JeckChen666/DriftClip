@@ -11,7 +11,7 @@ const alertVariants = cva(
         default: 'bg-background text-foreground',
         warn: 'border-warn-border bg-warn-bg text-warn',
         destructive:
-          'text-destructive [&>svg]:text-destructive',
+          'border-destructive/40 bg-destructive-subtle text-destructive-subtle-foreground [&>svg]:text-destructive',
       },
     },
     defaultVariants: {
@@ -23,31 +23,14 @@ const alertVariants = cva(
 const Alert = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
->(({ className, variant, style, ...props }, ref) => {
-  const isDestructive = variant === 'destructive'
-  const destructiveStyle: React.CSSProperties | undefined = isDestructive
-    ? {
-        backgroundColor:
-          'color-mix(in srgb, var(--danger) 10%, transparent)',
-        borderColor:
-          'color-mix(in srgb, var(--danger) 40%, transparent)',
-        ...style,
-      }
-    : style
-  return (
-    <div
-      ref={ref}
-      role="alert"
-      style={destructiveStyle}
-      className={cn(
-        alertVariants({ variant }),
-        isDestructive && 'border',
-        className,
-      )}
-      {...props}
-    />
-  )
-})
+>(({ className, variant, ...props }, ref) => (
+  <div
+    ref={ref}
+    role="alert"
+    className={cn(alertVariants({ variant }), className)}
+    {...props}
+  />
+))
 Alert.displayName = 'Alert'
 
 const AlertTitle = React.forwardRef<

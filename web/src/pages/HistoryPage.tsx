@@ -1,8 +1,18 @@
 // 历史页：组合筛选（平台/正文/时间）、多选删除、清空全部（5s 确认）、
 // 单条删除、复制、详情展开、手动刷新、自动刷新（localStorage）、分页。
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ChevronDown, ChevronUp, Loader2, RefreshCw, Trash2 } from 'lucide-react'
+import {
+  AlertCircle,
+  ChevronDown,
+  ChevronUp,
+  ClipboardList,
+  Copy,
+  RefreshCw,
+  Trash2,
+} from 'lucide-react'
 
+import { EmptyState } from '@/components/EmptyState'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -15,6 +25,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useToast } from '@/components/ui/toast'
 import {
   ApiError,
   getAutoRefreshSeconds,
@@ -35,6 +47,7 @@ const AUTO_REFRESH_OPTIONS = [
 ]
 
 export function HistoryPage() {
+  const { toast } = useToast()
   const [items, setItems] = useState<HistoryListItem[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -141,9 +154,11 @@ export function HistoryPage() {
 
   async function deleteSelected() {
     setError('')
+    const count = selected.size
     try {
       await historyApi.batchDelete([...selected])
       await load(page, appliedFilter.current)
+      toast(`已删除 ${count} 条记录`)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '批量删除失败')
     }
@@ -181,8 +196,9 @@ export function HistoryPage() {
     try {
       const d = details[id] ?? (await historyApi.get(id))
       await navigator.clipboard.writeText(d.content)
+      toast('已复制到剪贴板')
     } catch {
-      // 剪贴板不可用时静默
+      toast('复制失败，浏览器未授予剪贴板权限', 'error')
     }
   }
 
@@ -191,6 +207,7 @@ export function HistoryPage() {
     try {
       await historyApi.remove(id)
       await load(page, appliedFilter.current)
+      toast('已删除 1 条记录')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '删除失败')
     }
@@ -216,7 +233,7 @@ export function HistoryPage() {
               setAutoRefresh(n)
             }}
           >
-            <SelectTrigger className="h-9 w-[150px]" aria-label="自动刷新间隔">
+            <SelectTrigger className="h-control-md w-[150px]" aria-label="自动刷新间隔">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -232,7 +249,7 @@ export function HistoryPage() {
             onClick={() => void load(page, appliedFilter.current)}
             disabled={loading}
           >
-            <RefreshCw className={cn('h-3.5 w-3.5', loading && 'animate-spin')} />
+            <RefreshCw className={cn('size-icon-sm', loading && 'animate-spin')} />
             刷新
           </Button>
         </div>
@@ -240,7 +257,7 @@ export function HistoryPage() {
 
       {/* 筛选栏（Spec §6.2：组合筛选 AND 关系，正文匹配忽略英文字母大小写） */}
       <Card>
-        <CardContent className="pt-5">
+        <CardContent className="p-4">
           <div className="flex flex-wrap items-center gap-2">
             <Select value={platform} onValueChange={setPlatform}>
               <SelectTrigger className="w-[140px]" aria-label="平台筛选">
@@ -288,9 +305,10 @@ export function HistoryPage() {
       </Card>
 
       {error && (
-        <p className="text-body-sm text-destructive" role="alert">
-          {error}
-        </p>
+        <Alert variant="destructive">
+          <AlertCircle className="size-icon-md" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       <div className="flex items-center gap-2.5">
@@ -327,106 +345,170 @@ export function HistoryPage() {
             size="sm"
             onClick={() => setClearConfirming(true)}
           >
-            <Trash2 className="h-3.5 w-3.5" />
+            <Trash2 className="size-icon-sm" />
             清空全部
           </Button>
         )}
       </div>
 
       {loading && items.length === 0 ? (
-        <p className="text-body-sm text-muted-foreground inline-flex items-center gap-2">
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          加载中…
-        </p>
-      ) : items.length === 0 ? (
-        <p className="py-10 text-center text-body-sm text-muted-foreground">
-          暂无历史记录。
-        </p>
-      ) : (
-        <ul className="flex flex-col gap-3 list-none m-0 p-0">
-          {items.map((it) => (
-            <li key={it.id}>
-              <Card className="transition-colors hover:border-border-strong">
-                <CardContent className="flex flex-col gap-2 p-4">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Checkbox
-                      aria-label={`选择记录 ${it.id}`}
-                      checked={selected.has(it.id)}
-                      onCheckedChange={() => toggleSelect(it.id)}
-                    />
-                    <Badge variant="outline">{it.platform}</Badge>
-                    <Badge variant={it.source === 'manual' ? 'manual' : 'primary'}>
-                      {it.source === 'manual' ? '手动' : '剪贴板'}
-                    </Badge>
-                    <span className="text-body-sm text-muted-foreground">
-                      {it.received_at}
-                    </span>
-                    <span className="text-body-sm text-muted-foreground">
-                      {it.device_model || it.os_version || ''}
-                    </span>
+        // 首屏加载用骨架占位，内容到达后布局不跳动。
+        <ul className="m-0 flex list-none flex-col gap-3 p-0" aria-busy="true">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <li key={i}>
+              <Card>
+                <CardContent className="flex flex-col gap-3 p-4">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="size-4 rounded-xs" />
+                    <Skeleton className="h-5 w-14 rounded-full" />
+                    <Skeleton className="h-5 w-12 rounded-full" />
+                    <Skeleton className="h-3.5 w-32" />
                   </div>
-                  <div className="text-body whitespace-pre-wrap break-words text-foreground">
-                    {it.content_preview}
-                  </div>
-                  <div className="flex gap-2.5">
-                    <Button
-                      variant="link"
-                      size="sm"
-                      onClick={() => void toggleDetail(it.id)}
-                      className="h-7 px-2"
-                    >
-                      {expandedId === it.id ? (
-                        <ChevronUp className="h-3.5 w-3.5" />
-                      ) : (
-                        <ChevronDown className="h-3.5 w-3.5" />
-                      )}
-                      {expandedId === it.id ? '收起' : '详情'}
-                    </Button>
-                    <Button
-                      variant="link"
-                      size="sm"
-                      onClick={() => void copyFull(it.id)}
-                      className="h-7 px-2"
-                    >
-                      复制
-                    </Button>
-                    <Button
-                      variant="link"
-                      size="sm"
-                      className="h-7 px-2 text-destructive hover:text-destructive"
-                      onClick={() => void removeOne(it.id)}
-                    >
-                      删除
-                    </Button>
-                  </div>
-                  {expandedId === it.id && details[it.id] && (
-                    <div className="mt-1 border-t border-dashed border-border pt-3">
-                      <pre className="m-0 mb-2 whitespace-pre-wrap break-words rounded-md border border-border bg-secondary p-3 text-body-sm">
-                        {details[it.id].content}
-                      </pre>
-                      <p className="text-body-sm text-muted-foreground">
-                        来源：{details[it.id].source} · 接收时间：
-                        {details[it.id].received_at} · IP：
-                        {details[it.id].public_ip} · 平台：
-                        {details[it.id].platform}
-                        {details[it.id].device_model &&
-                          ` · 型号：${details[it.id].device_model}`}
-                        {details[it.id].os_version &&
-                          ` · 系统：${details[it.id].os_version}`}
-                        {details[it.id].app_version &&
-                          ` · 版本：${details[it.id].app_version}`}
-                      </p>
-                    </div>
-                  )}
+                  <Skeleton className="h-4 w-4/5" />
+                  <Skeleton className="h-4 w-3/5" />
                 </CardContent>
               </Card>
             </li>
           ))}
         </ul>
+      ) : items.length === 0 ? (
+        <EmptyState
+          icon={ClipboardList}
+          title="暂无历史记录"
+          hint="在任意已连接设备上复制内容，或调整上方筛选条件后再试。"
+        />
+      ) : (
+        <ul className="m-0 flex list-none flex-col gap-3 p-0">
+          {items.map((it) => {
+            const expanded = expandedId === it.id
+            const isSelected = selected.has(it.id)
+            return (
+              <li key={it.id}>
+                <Card
+                  className={cn(
+                    'group transition-colors duration-150 hover:border-border-strong',
+                    isSelected && 'border-primary/50 bg-accent/40',
+                  )}
+                >
+                  <CardContent className="flex flex-col gap-2 p-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Checkbox
+                        aria-label={`选择记录 ${it.id}`}
+                        checked={isSelected}
+                        onCheckedChange={() => toggleSelect(it.id)}
+                      />
+                      <Badge variant="outline">{it.platform}</Badge>
+                      <Badge variant={it.source === 'manual' ? 'manual' : 'primary'}>
+                        {it.source === 'manual' ? '手动' : '剪贴板'}
+                      </Badge>
+                      <span className="text-caption text-muted-foreground tabular-nums">
+                        {it.received_at}
+                      </span>
+                      {(it.device_model || it.os_version) && (
+                        <span className="text-caption text-muted-foreground">
+                          · {it.device_model || it.os_version}
+                        </span>
+                      )}
+                      {/* 操作区常驻在右上角，hover 时才浮现，保持列表安静。 */}
+                      <div className="ml-auto flex items-center gap-0.5 opacity-60 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label="复制全文"
+                          title="复制全文"
+                          onClick={() => void copyFull(it.id)}
+                        >
+                          <Copy className="size-icon-sm" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label="删除"
+                          title="删除"
+                          className="hover:bg-destructive-subtle hover:text-destructive"
+                          onClick={() => void removeOne(it.id)}
+                        >
+                          <Trash2 className="size-icon-sm" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="whitespace-pre-wrap break-words text-body text-foreground">
+                      {it.content_preview}
+                    </div>
+                    <div>
+                      <Button
+                        variant="ghost"
+                        size="xs"
+                        className="-ml-2 text-muted-foreground"
+                        onClick={() => void toggleDetail(it.id)}
+                        aria-expanded={expanded}
+                      >
+                        {expanded ? (
+                          <ChevronUp className="size-icon-sm" />
+                        ) : (
+                          <ChevronDown className="size-icon-sm" />
+                        )}
+                        {expanded ? '收起' : '详情'}
+                      </Button>
+                    </div>
+                    {expanded && details[it.id] && (
+                      <div className="mt-1 border-t border-dashed border-border pt-3">
+                        <pre className="m-0 mb-2 whitespace-pre-wrap break-words rounded-md border border-border bg-secondary p-3 font-mono text-body-sm leading-relaxed">
+                          {details[it.id].content}
+                        </pre>
+                        <dl className="m-0 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-caption text-muted-foreground">
+                          <dt>来源</dt>
+                          <dd className="m-0 text-foreground">{details[it.id].source}</dd>
+                          <dt>接收时间</dt>
+                          <dd className="m-0 text-foreground tabular-nums">
+                            {details[it.id].received_at}
+                          </dd>
+                          <dt>IP</dt>
+                          <dd className="m-0 font-mono text-foreground">
+                            {details[it.id].public_ip}
+                          </dd>
+                          <dt>平台</dt>
+                          <dd className="m-0 text-foreground">{details[it.id].platform}</dd>
+                          {details[it.id].device_model && (
+                            <>
+                              <dt>型号</dt>
+                              <dd className="m-0 text-foreground">
+                                {details[it.id].device_model}
+                              </dd>
+                            </>
+                          )}
+                          {details[it.id].os_version && (
+                            <>
+                              <dt>系统</dt>
+                              <dd className="m-0 text-foreground">
+                                {details[it.id].os_version}
+                              </dd>
+                            </>
+                          )}
+                          {details[it.id].app_version && (
+                            <>
+                              <dt>版本</dt>
+                              <dd className="m-0 text-foreground">
+                                {details[it.id].app_version}
+                              </dd>
+                            </>
+                          )}
+                        </dl>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </li>
+            )
+          })}
+        </ul>
       )}
 
       {totalPages > 1 && (
-        <div className="mt-6 flex justify-center gap-2.5">
+        <nav
+          className="mt-4 flex items-center justify-center gap-3"
+          aria-label="分页"
+        >
           <Button
             variant="outline"
             size="sm"
@@ -435,6 +517,9 @@ export function HistoryPage() {
           >
             上一页
           </Button>
+          <span className="text-body-sm text-muted-foreground tabular-nums">
+            第 <span className="font-semibold text-foreground">{page}</span> / {totalPages} 页
+          </span>
           <Button
             variant="outline"
             size="sm"
@@ -443,7 +528,7 @@ export function HistoryPage() {
           >
             下一页
           </Button>
-        </div>
+        </nav>
       )}
     </section>
   )
