@@ -101,10 +101,26 @@ class HistoryContentState extends State<HistoryContent> {
     _load();
     _startAutoRefresh();
     _lifecycle = AppLifecycleListener(onStateChange: _handleLifecycle);
+    // 桌面端选中态由父级的 selectedId 驱动，列表需要跟着重绘才能显示高亮。
+    widget.selectedId?.addListener(_onSelectedChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant HistoryContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedId != widget.selectedId) {
+      oldWidget.selectedId?.removeListener(_onSelectedChanged);
+      widget.selectedId?.addListener(_onSelectedChanged);
+    }
+  }
+
+  void _onSelectedChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    widget.selectedId?.removeListener(_onSelectedChanged);
     _autoRefreshTimer?.cancel();
     _lifecycle?.dispose();
     _clearTimer?.cancel();
@@ -674,128 +690,139 @@ class HistoryContentState extends State<HistoryContent> {
     );
   }
 
-  /// 桌面端高密度卡片：干净表面 + 1px 细边框，悬停加深，选中态浅 accent 底 + accent 描边。
+  /// 桌面端高密度卡片：干净表面 + 1px 细边框，悬停加深边框并提亮底色，
+  /// 选中态浅 accent 底 + accent 描边。
   Widget _compactCard(HistoryRecord record, {required bool isSelected}) {
     final scheme = Theme.of(context).colorScheme;
-    final (_, platformColor) = PlatformAvatar.lookup(record.platform);
+    final (platformIcon, platformColor) = PlatformAvatar.lookup(
+      context,
+      record.platform,
+    );
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: Material(
-        color: isSelected ? scheme.primaryContainer : scheme.surface,
-        borderRadius: BorderRadius.circular(10),
-        child: InkWell(
+      child: _HoverAware(
+        builder: (context, hovered) => Material(
+          color: isSelected ? scheme.primaryContainer : scheme.surface,
           borderRadius: BorderRadius.circular(10),
-          hoverColor: scheme.onSurface.withValues(alpha: 0.035),
-          onTap: () {
-            if (_selectionMode) {
-              setState(() {
-                if (!_selected.add(record.id)) _selected.remove(record.id);
-              });
-              return;
-            }
-            // 桌面端点击：通知父级展示右侧详情面板。
-            widget.selectedId?.value = record.id;
-          },
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: isSelected
-                    ? scheme.primary.withValues(alpha: 0.55)
-                    : scheme.outlineVariant,
-                width: isSelected ? 1.2 : 1,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(10),
+            hoverColor: scheme.onSurface.withValues(alpha: 0.03),
+            onTap: () {
+              if (_selectionMode) {
+                setState(() {
+                  if (!_selected.add(record.id)) _selected.remove(record.id);
+                });
+                return;
+              }
+              // 桌面端点击：通知父级展示右侧详情面板。
+              widget.selectedId?.value = record.id;
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 120),
+              curve: Curves.easeOut,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                // 三态边框：选中 > 悬停 > 静默，层级递减。
+                border: Border.all(
+                  color: isSelected
+                      ? scheme.primary.withValues(alpha: 0.55)
+                      : hovered
+                      ? scheme.outline
+                      : scheme.outlineVariant,
+                  width: isSelected ? 1.2 : 1,
+                ),
               ),
-            ),
-            child: IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // 左侧平台色条：与列表行等高，扫一眼就知道平台。
-                  Container(
-                    width: 3,
-                    decoration: BoxDecoration(
-                      color: platformColor,
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(10),
-                        bottomLeft: Radius.circular(10),
-                      ),
-                    ),
-                  ),
-                  if (_selectionMode)
+              child: IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // 左侧平台标识：30 圆角图标块（颜色 + 图标双重信号）。
+                    // 与 NavSidebar 平台项样式保持一致，视觉语言统一。
                     Padding(
-                      padding: const EdgeInsets.only(left: 6, top: 4),
-                      child: Checkbox(
-                        value: _selected.contains(record.id),
-                        onChanged: (_) => setState(() {
-                          if (!_selected.add(record.id)) {
-                            _selected.remove(record.id);
-                          }
-                        }),
+                      padding: const EdgeInsets.fromLTRB(10, 10, 0, 10),
+                      child: Container(
+                        width: 30,
+                        height: 30,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: platformColor.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          platformIcon,
+                          size: 17,
+                          color: platformColor,
+                        ),
                       ),
                     ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 9,
+                    if (_selectionMode)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8, top: 6),
+                        child: Checkbox(
+                          value: _selected.contains(record.id),
+                          onChanged: (_) => setState(() {
+                            if (!_selected.add(record.id)) {
+                              _selected.remove(record.id);
+                            }
+                          }),
+                        ),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            record.contentPreview,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w500,
-                              height: 1.45,
-                              color: scheme.onSurface,
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              record.contentPreview,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w500,
+                                height: 1.45,
+                                color: scheme.onSurface,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _metaLine(record),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 10.5,
-                              color: scheme.onSurfaceVariant,
+                            const SizedBox(height: 2),
+                            Text(
+                              _metaLine(record),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                color: scheme.onSurfaceVariant,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  // 桌面端操作：默认低调，悬停时由卡片底色衬托。
-                  if (!_selectionMode)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 2),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            tooltip: '复制',
-                            icon: Icon(
-                              Icons.copy_rounded,
-                              size: 16,
-                              color: scheme.onSurfaceVariant,
-                            ),
-                            onPressed: () => _copy(record),
-                          ),
-                          IconButton(
-                            tooltip: '删除',
-                            icon: Icon(
-                              Icons.delete_outline_rounded,
-                              size: 16,
-                              color: scheme.onSurfaceVariant,
-                            ),
-                            onPressed: () => _delete(record.id),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                ],
+                    // 桌面端操作：颜色交给 iconButtonTheme，悬停自动提亮。
+                    if (!_selectionMode)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 2),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              tooltip: '复制',
+                              icon: const Icon(Icons.copy_rounded, size: 16),
+                              onPressed: () => _copy(record),
+                            ),
+                            IconButton(
+                              tooltip: '删除',
+                              icon: const Icon(
+                                Icons.delete_outline_rounded,
+                                size: 16,
+                              ),
+                              onPressed: () => _delete(record.id),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -821,27 +848,148 @@ class HistoryContentState extends State<HistoryContent> {
     if (!mounted) return;
     final d = r.ok ? r.data! : record;
     final scheme = Theme.of(context).colorScheme;
-    showDialog<void>(
+    // 移动端用可拖拽底部弹层：拇指够得着、长内容能滚动、下拉即关，
+    // 比居中 AlertDialog 更贴近手机端的操作习惯。
+    showModalBottomSheet<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: scheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.6,
+        minChildSize: 0.35,
+        maxChildSize: 0.92,
+        builder: (context, controller) => Column(
           children: [
-            PlatformAvatar(platform: d.platform, size: 24),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            // 拖拽把手：告诉用户这是可拉动的面板。
+            Padding(
+              padding: const EdgeInsets.only(top: 8, bottom: 4),
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: scheme.outline.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: Row(
                 children: [
-                  Text(
-                    d.platform.isEmpty ? 'DriftClip' : d.platform,
-                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  PlatformAvatar(platform: d.platform, size: 28),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          d.platform.isEmpty ? 'DriftClip' : d.platform,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          TimeFormat.full(d.receivedAt),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  Text(
-                    TimeFormat.full(d.receivedAt),
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w400,
-                      color: scheme.onSurfaceVariant,
+                  IconButton(
+                    tooltip: '关闭',
+                    icon: const Icon(Icons.close_rounded, size: 18),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: ListView(
+                controller: controller,
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: scheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: scheme.outlineVariant),
+                    ),
+                    child: SelectableText(
+                      d.content ?? d.contentPreview,
+                      style: const TextStyle(fontSize: 12.5, height: 1.55),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  MetaRow(
+                    icon: Icons.travel_explore,
+                    label: '来源',
+                    value: d.source.isEmpty ? '-' : d.source,
+                  ),
+                  MetaRow(
+                    icon: Icons.public,
+                    label: 'IP',
+                    value: d.publicIp ?? '-',
+                  ),
+                  MetaRow(
+                    icon: Icons.memory,
+                    label: '系统',
+                    value: d.osVersion.isEmpty ? '-' : d.osVersion,
+                  ),
+                  MetaRow(
+                    icon: Icons.devices_other,
+                    label: '型号',
+                    value: d.deviceModel.isEmpty ? '-' : d.deviceModel,
+                  ),
+                  MetaRow(
+                    icon: Icons.info_outline,
+                    label: '版本',
+                    value: d.appVersion.isEmpty ? '-' : d.appVersion,
+                  ),
+                  MetaRow(
+                    icon: Icons.fingerprint,
+                    label: '安装 ID',
+                    value: d.installationId,
+                    monospace: true,
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        _delete(d.id);
+                      },
+                      icon: const Icon(Icons.delete_outline_rounded, size: 15),
+                      label: const Text('删除'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        _copy(d);
+                      },
+                      icon: const Icon(Icons.copy_rounded, size: 15),
+                      label: const Text('复制'),
                     ),
                   ),
                 ],
@@ -849,71 +997,6 @@ class HistoryContentState extends State<HistoryContent> {
             ),
           ],
         ),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: scheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: scheme.outlineVariant),
-                ),
-                child: SelectableText(
-                  d.content ?? d.contentPreview,
-                  style: const TextStyle(fontSize: 12.5, height: 1.55),
-                ),
-              ),
-              const SizedBox(height: 10),
-              MetaRow(
-                icon: Icons.travel_explore,
-                label: '来源',
-                value: d.source.isEmpty ? '-' : d.source,
-              ),
-              MetaRow(
-                icon: Icons.public,
-                label: 'IP',
-                value: d.publicIp ?? '-',
-              ),
-              MetaRow(
-                icon: Icons.memory,
-                label: '系统',
-                value: d.osVersion.isEmpty ? '-' : d.osVersion,
-              ),
-              MetaRow(
-                icon: Icons.devices_other,
-                label: '型号',
-                value: d.deviceModel.isEmpty ? '-' : d.deviceModel,
-              ),
-              MetaRow(
-                icon: Icons.info_outline,
-                label: '版本',
-                value: d.appVersion.isEmpty ? '-' : d.appVersion,
-              ),
-              MetaRow(
-                icon: Icons.fingerprint,
-                label: '安装 ID',
-                value: d.installationId,
-                monospace: true,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('关闭'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _copy(d);
-            },
-            child: const Text('复制'),
-          ),
-        ],
       ),
     );
   }
@@ -1072,6 +1155,27 @@ class _ErrorState extends StatelessWidget {
   }
 }
 
-// _openSettings 已通过 onOpenSettings 回调委托给父级，
-// 默认分支（移动端）保留 Navigator.push 行为，由父级 HomeScreen 注入回调。
-// 若父级未注入，则走 Navigator.push 兼容旧路径。
+/// 把指针悬停状态暴露给 builder，供卡片在 hover 时切换边框/底色。
+/// 独立成 StatefulWidget 是为了让每张卡片各自持有状态，
+/// 不用在列表 build 中反复创建 ValueNotifier。
+class _HoverAware extends StatefulWidget {
+  final Widget Function(BuildContext context, bool hovered) builder;
+
+  const _HoverAware({required this.builder});
+
+  @override
+  State<_HoverAware> createState() => _HoverAwareState();
+}
+
+class _HoverAwareState extends State<_HoverAware> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: widget.builder(context, _hovered),
+    );
+  }
+}

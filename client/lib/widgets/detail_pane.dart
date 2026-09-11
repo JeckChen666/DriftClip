@@ -9,7 +9,7 @@ import '../utils/time_format.dart';
 import 'meta_row.dart';
 import 'platform_avatar.dart';
 
-/// 桌面端右侧详情面板（380 宽）。
+/// 桌面端右侧详情面板（360 宽）。
 ///
 /// 订阅 [selectedId]：变化时拉取 api.detail 获取完整正文。
 /// 选中前展示空态提示；选中后展示平台头 + 完整正文 + 元信息行。
@@ -223,7 +223,7 @@ class _DetailPaneState extends State<DetailPane> {
 
   Widget _buildPlatformHeader(HistoryRecord r) {
     final scheme = Theme.of(context).colorScheme;
-    final (_, color) = PlatformAvatar.lookup(r.platform);
+    final (_, color) = PlatformAvatar.lookup(context, r.platform);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

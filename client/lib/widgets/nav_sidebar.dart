@@ -1,10 +1,12 @@
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 
 import 'brand_title.dart';
 import 'platform_avatar.dart';
 import 'status_chip.dart';
 
-/// 桌面端左侧导航栏（240 宽）。
+/// 桌面端左侧导航栏（220 宽）。
 ///
 /// 内容自上而下：
 /// 1. 品牌头
@@ -118,18 +120,18 @@ class NavSidebar extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           _sectionLabel(scheme, '按平台'),
-          ..._platformItems(),
+          ..._platformItems(context),
         ],
       ),
     );
   }
 
   /// 平台筛选项：固定 6 个常见平台 + 计数；空计数仍显示（保持布局稳定）。
-  List<Widget> _platformItems() {
+  List<Widget> _platformItems(BuildContext context) {
     const order = ['macos', 'windows', 'linux', 'android', 'ios', 'web'];
     return order.map((p) {
       final count = platformCounts[p] ?? 0;
-      final (icon, color) = PlatformAvatar.lookup(p);
+      final (icon, color) = PlatformAvatar.lookup(context, p);
       return _PlatformNavItem(
         icon: icon,
         color: color,
@@ -142,6 +144,8 @@ class NavSidebar extends StatelessWidget {
   }
 
   Widget _buildFooter() {
+    // 快捷键修饰符随平台切换：macOS 用 ⌘，其余桌面平台用 Ctrl。
+    final mod = defaultTargetPlatform == TargetPlatform.macOS ? '⌘' : 'Ctrl+';
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
       child: Column(
@@ -150,14 +154,14 @@ class NavSidebar extends StatelessWidget {
           _FooterButton(
             icon: Icons.edit_rounded,
             label: '手动输入',
-            shortcut: '⌘N',
+            shortcut: '${mod}N',
             onPressed: onManualInput,
           ),
           const SizedBox(height: 4),
           _FooterButton(
             icon: Icons.settings_outlined,
             label: '设置',
-            shortcut: '⌘,',
+            shortcut: '$mod,',
             onPressed: onOpenSettings,
           ),
         ],
@@ -224,6 +228,7 @@ class _NavItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         child: InkWell(
           borderRadius: BorderRadius.circular(8),
+          hoverColor: scheme.onSurface.withValues(alpha: 0.05),
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -296,6 +301,7 @@ class _PlatformNavItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         child: InkWell(
           borderRadius: BorderRadius.circular(8),
+          hoverColor: scheme.onSurface.withValues(alpha: 0.05),
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -363,6 +369,7 @@ class _FooterButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(8),
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
+        hoverColor: scheme.onSurface.withValues(alpha: 0.05),
         onTap: onPressed,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -373,7 +380,12 @@ class _FooterButton extends StatelessWidget {
               Expanded(
                 child: Text(
                   label,
-                  style: TextStyle(fontSize: 12, color: scheme.onSurface),
+                  // 与 _NavItem 未选中态同刻度（12.5 / w500），同一列字重一致。
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w500,
+                    color: scheme.onSurface,
+                  ),
                 ),
               ),
               _ShortcutHint(text: shortcut),

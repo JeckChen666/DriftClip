@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme.dart';
+
 /// 监听状态指示：开启为绿色「监听中」，关闭为琥珀色「监听未开启」。
 ///
 /// 复用于移动端工具栏顶部与桌面端 NavSidebar 顶部。
@@ -17,7 +19,8 @@ class StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = listening ? const Color(0xFF16A34A) : const Color(0xFFD97706);
+    final p = AppPalette.of(context);
+    final color = listening ? p.statusGreen : p.statusAmber;
     final hPad = dense ? 8.0 : 10.0;
     final vPad = dense ? 2.0 : 4.0;
     final fontSize = dense ? 10.0 : 11.0;

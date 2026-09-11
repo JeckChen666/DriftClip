@@ -3,6 +3,36 @@ import 'package:flutter/material.dart';
 
 import 'theme/_palette.g.dart';
 
+export 'theme/_palette.g.dart' show Palette;
+
+/// 把令牌 [Palette] 挂到 ThemeData.extensions 上，
+/// 让平台色、状态色等不在 ColorScheme 里的令牌也能通过 `Theme.of(context)` 取到，
+/// 避免组件重新硬编码颜色。
+class AppPalette extends ThemeExtension<AppPalette> {
+  final Palette palette;
+
+  const AppPalette(this.palette);
+
+  /// 取当前主题的令牌；若宿主 ThemeData 未注册扩展（如测试里的裸 MaterialApp），
+  /// 按亮暗度回退到默认 Palette，避免组件因缺少扩展而崩溃。
+  static Palette of(BuildContext context) {
+    final theme = Theme.of(context);
+    return theme.extension<AppPalette>()?.palette ??
+        (theme.brightness == Brightness.dark
+            ? Palette.dark()
+            : Palette.light());
+  }
+
+  @override
+  AppPalette copyWith({Palette? palette}) =>
+      AppPalette(palette ?? this.palette);
+
+  /// 亮暗切换时直接跳变即可：令牌是离散集合，不做逐色插值。
+  @override
+  AppPalette lerp(ThemeExtension<AppPalette>? other, double t) =>
+      t < 0.5 ? this : (other as AppPalette? ?? this);
+}
+
 /// DriftClip 全局主题（精致专业风格）。
 ///
 /// 品牌色与 Web 端一致（主色 #2563EB，见 web/src/index.css --accent）。
@@ -10,7 +40,8 @@ import 'theme/_palette.g.dart';
 /// 色彩令牌统一收口在 [Palette]（由 tokens/tokens.json 经 tool/sync_tokens.dart 生成），
 /// 组件级样式在此集中配置，各页面直接用 Theme.of(context) 派生，避免散落硬编码颜色。
 abstract final class AppTheme {
-  static const Color seed = Color(0xFF2563EB);
+  /// 种子色直接取自令牌单源，避免与 tokens.json 漂移。
+  static Color get seed => Palette.light().accent;
 
   static ThemeData light() => _base(Brightness.light);
 
@@ -46,6 +77,7 @@ abstract final class AppTheme {
       useMaterial3: true,
       colorScheme: scheme,
       scaffoldBackgroundColor: p.canvas,
+      extensions: [AppPalette(p)],
     );
 
     final textTheme = _typography(base.textTheme, p);
@@ -81,7 +113,8 @@ abstract final class AppTheme {
       dialogTheme: DialogThemeData(
         backgroundColor: p.surface,
         surfaceTintColor: Colors.transparent,
-        elevation: 0,
+        // 弹窗是浮层，允许一层柔和投影把它从画布上抬起来。
+        elevation: 12,
         shadowColor: p.shadow,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
@@ -131,38 +164,67 @@ abstract final class AppTheme {
         ),
         hintStyle: TextStyle(color: p.textMuted.withValues(alpha: 0.75)),
         labelStyle: TextStyle(color: p.textMuted),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 8,
-        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         prefixIconColor: p.textMuted,
         suffixIconColor: p.textMuted,
       ),
       filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          minimumSize: const Size(0, 36),
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          backgroundColor: p.accent,
-          foregroundColor: p.onAccent,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-        ),
+        style:
+            FilledButton.styleFrom(
+              minimumSize: const Size(0, 36),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              backgroundColor: p.accent,
+              foregroundColor: p.onAccent,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              textStyle: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ).copyWith(
+              // hover 走 accentHover 令牌；按下时叠一层浅白，替代 M3 默认的灰色水波。
+              backgroundColor: WidgetStateProperty.resolveWith(
+                (states) => states.contains(WidgetState.hovered)
+                    ? p.accentHover
+                    : p.accent,
+              ),
+              overlayColor: WidgetStateProperty.resolveWith(
+                (states) => states.contains(WidgetState.pressed)
+                    ? Colors.white.withValues(alpha: 0.12)
+                    : Colors.transparent,
+              ),
+            ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          minimumSize: const Size(0, 36),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          foregroundColor: p.textPrimary,
-          elevation: 0,
-          side: BorderSide(color: p.borderStrong),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          textStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
-        ),
+        style:
+            OutlinedButton.styleFrom(
+              minimumSize: const Size(0, 36),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              foregroundColor: p.textPrimary,
+              elevation: 0,
+              side: BorderSide(color: p.borderStrong),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              textStyle: const TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 13,
+              ),
+            ).copyWith(
+              // hover 时边框与文字同时提亮，给出可点击的即时反馈。
+              side: WidgetStateProperty.resolveWith(
+                (states) => states.contains(WidgetState.hovered)
+                    ? BorderSide(color: p.accent, width: 1.2)
+                    : BorderSide(color: p.borderStrong),
+              ),
+              foregroundColor: WidgetStateProperty.resolveWith(
+                (states) => states.contains(WidgetState.hovered)
+                    ? p.accent
+                    : p.textPrimary,
+              ),
+            ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
@@ -174,12 +236,27 @@ abstract final class AppTheme {
         ),
       ),
       iconButtonTheme: IconButtonThemeData(
-        style: IconButton.styleFrom(
-          minimumSize: const Size(32, 32),
-          padding: const EdgeInsets.all(6),
-          foregroundColor: p.textMuted,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-        ),
+        style:
+            IconButton.styleFrom(
+              minimumSize: const Size(32, 32),
+              padding: const EdgeInsets.all(6),
+              foregroundColor: p.textMuted,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ).copyWith(
+              // hover 时图标转为主文字色并铺一层极淡底色，让工具图标可发现。
+              foregroundColor: WidgetStateProperty.resolveWith(
+                (states) => states.contains(WidgetState.hovered)
+                    ? p.textPrimary
+                    : p.textMuted,
+              ),
+              backgroundColor: WidgetStateProperty.resolveWith(
+                (states) => states.contains(WidgetState.hovered)
+                    ? p.textPrimary.withValues(alpha: 0.06)
+                    : Colors.transparent,
+              ),
+            ),
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,

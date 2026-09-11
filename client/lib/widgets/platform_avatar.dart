@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme.dart';
+
 /// 平台头像：按平台着色的圆角图标块。
 ///
 /// 复用于列表卡片、详情面板、命令面板等多处，集中维护平台→(图标, 颜色) 映射。
@@ -9,23 +11,24 @@ class PlatformAvatar extends StatelessWidget {
 
   const PlatformAvatar({super.key, required this.platform, this.size = 32});
 
-  /// 平台 → (图标, 颜色) 映射；集中避免散落到各处。
-  static (IconData, Color) lookup(String platform) {
+  /// 平台 → (图标, 颜色) 映射；颜色来自令牌单源，集中避免散落到各处。
+  static (IconData, Color) lookup(BuildContext context, String platform) {
+    final p = AppPalette.of(context);
     switch (platform.toLowerCase()) {
       case 'macos':
-        return (Icons.laptop_mac_rounded, const Color(0xFF64748B));
+        return (Icons.laptop_mac_rounded, p.platformGray);
       case 'windows':
-        return (Icons.laptop_windows_rounded, const Color(0xFF2563EB));
+        return (Icons.laptop_windows_rounded, p.platformBlue);
       case 'linux':
-        return (Icons.laptop_rounded, const Color(0xFFF59E0B));
+        return (Icons.laptop_rounded, p.platformAmber);
       case 'android':
-        return (Icons.android_rounded, const Color(0xFF16A34A));
+        return (Icons.android_rounded, p.platformGreen);
       case 'ios':
-        return (Icons.phone_iphone_rounded, const Color(0xFF0D9488));
+        return (Icons.phone_iphone_rounded, p.platformTeal);
       case 'web':
-        return (Icons.language_rounded, const Color(0xFF8B5CF6));
+        return (Icons.language_rounded, p.platformPurple);
       default:
-        return (Icons.devices_other_rounded, const Color(0xFF6B7280));
+        return (Icons.devices_other_rounded, p.platformNeutral);
     }
   }
 
@@ -51,7 +54,7 @@ class PlatformAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (icon, color) = lookup(platform);
+    final (icon, color) = lookup(context, platform);
     return Container(
       width: size,
       height: size,
