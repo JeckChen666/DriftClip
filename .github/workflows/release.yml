@@ -37,7 +37,7 @@ jobs:
         run: |
           npm ci
           npm run build
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version-file: server/go.mod
           cache-dependency-path: server/go.sum
