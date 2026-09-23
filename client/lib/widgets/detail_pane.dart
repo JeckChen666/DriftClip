@@ -173,14 +173,14 @@ class _DetailPaneState extends State<DetailPane> {
       return _buildEmptyState();
     }
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 16),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildPlatformHeader(r),
-          const SizedBox(height: 10),
+          const SizedBox(height: 18),
           _buildContentBlock(r),
-          const SizedBox(height: 10),
+          const SizedBox(height: 18),
           _buildMetaList(r),
           const SizedBox(height: 12),
           _buildActions(r),
@@ -210,7 +210,7 @@ class _DetailPaneState extends State<DetailPane> {
                 color: scheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 18),
             Text(
               '选择条目查看详情',
               style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
@@ -258,17 +258,17 @@ class _DetailPaneState extends State<DetailPane> {
     final text = _fullContent ?? r.contentPreview;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: scheme.outlineVariant),
       ),
       child: Stack(
         children: [
           SelectableText(
             text,
-            style: const TextStyle(fontSize: 12.5, height: 1.55),
+            style: const TextStyle(fontSize: 14, height: 1.55),
           ),
           if (_loadingDetail)
             Positioned(

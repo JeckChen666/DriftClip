@@ -6,7 +6,7 @@ import 'brand_title.dart';
 import 'platform_avatar.dart';
 import 'status_chip.dart';
 
-/// 桌面端左侧导航栏（220 宽）。
+/// 桌面端左侧导航栏（232 宽）。
 ///
 /// 内容自上而下：
 /// 1. 品牌头
@@ -59,9 +59,12 @@ class NavSidebar extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final canvas = Theme.of(context).scaffoldBackgroundColor;
     return Container(
-      width: 220,
+      width: 232,
       decoration: BoxDecoration(
-        color: canvas,
+        color: Color.alphaBlend(
+          scheme.primary.withValues(alpha: 0.025),
+          canvas,
+        ),
         border: Border(
           right: BorderSide(color: scheme.outlineVariant, width: 1),
         ),
@@ -81,11 +84,11 @@ class NavSidebar extends StatelessWidget {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const BrandTitle(iconSize: 26, titleSize: 18, showSubtitle: false),
+          const BrandTitle(iconSize: 34, titleSize: 20, showSubtitle: true),
           const SizedBox(height: 10),
           Row(
             children: [
@@ -106,7 +109,7 @@ class NavSidebar extends StatelessWidget {
   Widget _buildScrollBody(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -147,7 +150,7 @@ class NavSidebar extends StatelessWidget {
     // 快捷键修饰符随平台切换：macOS 用 ⌘，其余桌面平台用 Ctrl。
     final mod = defaultTargetPlatform == TargetPlatform.macOS ? '⌘' : 'Ctrl+';
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -171,11 +174,11 @@ class NavSidebar extends StatelessWidget {
 
   Widget _sectionLabel(ColorScheme scheme, String text) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+      padding: const EdgeInsets.fromLTRB(24, 10, 24, 8),
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 10,
+          fontSize: 11,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.5,
           color: scheme.onSurfaceVariant,
@@ -222,16 +225,16 @@ class _NavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(6, 1, 6, 1),
+      padding: const EdgeInsets.fromLTRB(12, 3, 12, 3),
       child: Material(
         color: selected ? scheme.primaryContainer : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         child: InkWell(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           hoverColor: scheme.onSurface.withValues(alpha: 0.05),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
             child: Row(
               children: [
                 Icon(
@@ -246,7 +249,7 @@ class _NavItem extends StatelessWidget {
                   child: Text(
                     label,
                     style: TextStyle(
-                      fontSize: 12.5,
+                      fontSize: 13,
                       fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                       color: selected
                           ? scheme.onPrimaryContainer
@@ -295,16 +298,16 @@ class _PlatformNavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(6, 1, 6, 1),
+      padding: const EdgeInsets.fromLTRB(12, 3, 12, 3),
       child: Material(
         color: selected ? scheme.primaryContainer : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         child: InkWell(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           hoverColor: scheme.onSurface.withValues(alpha: 0.05),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
             child: Row(
               children: [
                 Container(
@@ -321,7 +324,7 @@ class _PlatformNavItem extends StatelessWidget {
                   child: Text(
                     label,
                     style: TextStyle(
-                      fontSize: 12.5,
+                      fontSize: 13,
                       fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                       color: selected
                           ? scheme.onPrimaryContainer
@@ -366,13 +369,13 @@ class _FooterButton extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(12),
       child: InkWell(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         hoverColor: scheme.onSurface.withValues(alpha: 0.05),
         onTap: onPressed,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
           child: Row(
             children: [
               Icon(icon, size: 15, color: scheme.onSurfaceVariant),
@@ -382,7 +385,7 @@ class _FooterButton extends StatelessWidget {
                   label,
                   // 与 _NavItem 未选中态同刻度（12.5 / w500），同一列字重一致。
                   style: TextStyle(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w500,
                     color: scheme.onSurface,
                   ),
@@ -416,7 +419,7 @@ class _ShortcutHint extends StatelessWidget {
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 10,
+          fontSize: 11,
           fontWeight: FontWeight.w600,
           color: scheme.onSurfaceVariant,
           fontFeatures: const [FontFeature.tabularFigures()],

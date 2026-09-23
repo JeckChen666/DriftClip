@@ -390,13 +390,29 @@ class HistoryContentState extends State<HistoryContent> {
   /// 工具栏：监听状态 + 搜索框；compact 模式搜索框旁放「选择」入口。
   Widget _buildToolbar() {
     final pad = widget.compact
-        ? const EdgeInsets.fromLTRB(16, 8, 16, 6)
-        : const EdgeInsets.fromLTRB(14, 2, 14, 6);
+        ? const EdgeInsets.fromLTRB(24, 24, 24, 16)
+        : const EdgeInsets.fromLTRB(16, 12, 16, 12);
     return Padding(
       padding: pad,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (widget.compact) ...[
+            Text(
+              widget.platformFilter == null
+                  ? '剪贴板历史'
+                  : '${PlatformAvatar.shortName(widget.platformFilter!)} 历史',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              _query.trim().isNotEmpty
+                  ? '找到 ${_filtered.length} 条匹配记录'
+                  : '已载入 ${_records.length} 条记录 · 随时找回复制过的内容',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 20),
+          ],
           if (!widget.compact) ...[
             Row(
               children: [
@@ -494,7 +510,7 @@ class HistoryContentState extends State<HistoryContent> {
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: scheme.primaryContainer,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         children: [
@@ -572,9 +588,9 @@ class HistoryContentState extends State<HistoryContent> {
           onRefresh: _refresh,
           child: ListView.builder(
             padding: EdgeInsets.fromLTRB(
-              widget.compact ? 16 : 14,
+              widget.compact ? 24 : 16,
               4,
-              widget.compact ? 16 : 14,
+              widget.compact ? 24 : 16,
               80,
             ),
             itemCount: items.length,
@@ -610,12 +626,12 @@ class HistoryContentState extends State<HistoryContent> {
   Widget _regularCard(HistoryRecord record) {
     final scheme = Theme.of(context).colorScheme;
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(16),
         onTap: () => _showDetail(record),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -642,7 +658,7 @@ class HistoryContentState extends State<HistoryContent> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 12.5,
+                        fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: scheme.onSurface,
                       ),
@@ -699,13 +715,13 @@ class HistoryContentState extends State<HistoryContent> {
       record.platform,
     );
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.only(bottom: 10),
       child: _HoverAware(
         builder: (context, hovered) => Material(
           color: isSelected ? scheme.primaryContainer : scheme.surface,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(16),
           child: InkWell(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(16),
             hoverColor: scheme.onSurface.withValues(alpha: 0.03),
             onTap: () {
               if (_selectionMode) {
@@ -718,10 +734,10 @@ class HistoryContentState extends State<HistoryContent> {
               widget.selectedId?.value = record.id;
             },
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 120),
+              duration: const Duration(milliseconds: 180),
               curve: Curves.easeOut,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(16),
                 // 三态边框：选中 > 悬停 > 静默，层级递减。
                 border: Border.all(
                   color: isSelected
@@ -736,13 +752,13 @@ class HistoryContentState extends State<HistoryContent> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // 左侧平台标识：30 圆角图标块（颜色 + 图标双重信号）。
+                    // 左侧平台标识：36 圆角图标块（颜色 + 图标双重信号）。
                     // 与 NavSidebar 平台项样式保持一致，视觉语言统一。
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(10, 10, 0, 10),
+                      padding: const EdgeInsets.fromLTRB(14, 14, 0, 14),
                       child: Container(
-                        width: 30,
-                        height: 30,
+                        width: 36,
+                        height: 36,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: platformColor.withValues(alpha: 0.14),
@@ -769,7 +785,7 @@ class HistoryContentState extends State<HistoryContent> {
                       ),
                     Expanded(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+                        padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -778,7 +794,7 @@ class HistoryContentState extends State<HistoryContent> {
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontSize: 12.5,
+                                fontSize: 14,
                                 fontWeight: FontWeight.w500,
                                 height: 1.45,
                                 color: scheme.onSurface,
@@ -790,7 +806,7 @@ class HistoryContentState extends State<HistoryContent> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontSize: 10.5,
+                                fontSize: 12,
                                 color: scheme.onSurfaceVariant,
                               ),
                             ),
@@ -923,12 +939,12 @@ class HistoryContentState extends State<HistoryContent> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: scheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: scheme.outlineVariant),
                     ),
                     child: SelectableText(
                       d.content ?? d.contentPreview,
-                      style: const TextStyle(fontSize: 12.5, height: 1.55),
+                      style: const TextStyle(fontSize: 14, height: 1.55),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -1016,7 +1032,7 @@ class _NeedsKeyBanner extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: scheme.errorContainer,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         children: [

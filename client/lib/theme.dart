@@ -36,7 +36,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
 /// DriftClip 全局主题（精致专业风格）。
 ///
 /// 品牌色与 Web 端一致（主色 #2563EB，见 web/src/index.css --accent）。
-/// 设计取向：克制的中性色 + 强字重层级 + 细分隔线代替重填充 + 仅浮层加阴影。
+/// 设计取向：中性画布 + 舒展间距 + 柔和圆角 + 清晰的蓝色交互层级。
 /// 色彩令牌统一收口在 [Palette]（由 tokens/tokens.json 经 tool/sync_tokens.dart 生成），
 /// 组件级样式在此集中配置，各页面直接用 Theme.of(context) 派生，避免散落硬编码颜色。
 abstract final class AppTheme {
@@ -98,7 +98,7 @@ abstract final class AppTheme {
           letterSpacing: -0.3,
           color: p.textPrimary,
         ),
-        toolbarHeight: 56,
+        toolbarHeight: 64,
       ),
       cardTheme: CardThemeData(
         elevation: 0,
@@ -106,7 +106,7 @@ abstract final class AppTheme {
         color: p.surface,
         shadowColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(16),
           side: BorderSide(color: p.border),
         ),
       ),
@@ -117,7 +117,7 @@ abstract final class AppTheme {
         elevation: 12,
         shadowColor: p.shadow,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(20),
           side: BorderSide(color: p.border),
         ),
         // 弹窗标题用 titleMedium（16px），不再用 titleLarge（20px），避免比页面标题还大。
@@ -143,45 +143,48 @@ abstract final class AppTheme {
           minHeight: 32,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: p.border),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: p.border),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: p.accent, width: 1.6),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: p.danger, width: 1.2),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: p.danger, width: 1.6),
         ),
         hintStyle: TextStyle(color: p.textMuted.withValues(alpha: 0.75)),
         labelStyle: TextStyle(color: p.textMuted),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 12,
+        ),
         prefixIconColor: p.textMuted,
         suffixIconColor: p.textMuted,
       ),
       filledButtonTheme: FilledButtonThemeData(
         style:
             FilledButton.styleFrom(
-              minimumSize: const Size(0, 36),
+              minimumSize: const Size(0, 40),
               padding: const EdgeInsets.symmetric(horizontal: 14),
               backgroundColor: p.accent,
               foregroundColor: p.onAccent,
               elevation: 0,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
               ),
               textStyle: const TextStyle(
                 fontWeight: FontWeight.w600,
-                fontSize: 13,
+                fontSize: 14,
               ),
             ).copyWith(
               // hover 走 accentHover 令牌；按下时叠一层浅白，替代 M3 默认的灰色水波。
@@ -200,17 +203,17 @@ abstract final class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style:
             OutlinedButton.styleFrom(
-              minimumSize: const Size(0, 36),
+              minimumSize: const Size(0, 40),
               padding: const EdgeInsets.symmetric(horizontal: 12),
               foregroundColor: p.textPrimary,
               elevation: 0,
               side: BorderSide(color: p.borderStrong),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
               ),
               textStyle: const TextStyle(
                 fontWeight: FontWeight.w500,
-                fontSize: 13,
+                fontSize: 14,
               ),
             ).copyWith(
               // hover 时边框与文字同时提亮，给出可点击的即时反馈。
@@ -263,7 +266,7 @@ abstract final class AppTheme {
         elevation: 6,
         backgroundColor: p.snackBar,
         contentTextStyle: TextStyle(color: p.snackBarText, fontSize: 12.5),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
@@ -299,12 +302,12 @@ abstract final class AppTheme {
         minVerticalPadding: 2,
         // 行内文字 13px，标题用 w600 与全局对齐。
         titleTextStyle: TextStyle(
-          fontSize: 13,
+          fontSize: 14,
           fontWeight: FontWeight.w600,
           color: p.textPrimary,
         ),
         subtitleTextStyle: TextStyle(fontSize: 11, color: p.textMuted),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       checkboxTheme: CheckboxThemeData(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
@@ -337,13 +340,13 @@ abstract final class AppTheme {
         color: p.textPrimary,
       ),
       titleLarge: base.titleLarge?.copyWith(
-        fontSize: 20,
+        fontSize: 22,
         fontWeight: FontWeight.w700,
         letterSpacing: -0.3,
         color: p.textPrimary,
       ),
       titleMedium: base.titleMedium?.copyWith(
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: FontWeight.w600,
         letterSpacing: -0.15,
         color: p.textPrimary,
@@ -352,15 +355,14 @@ abstract final class AppTheme {
         fontWeight: FontWeight.w600,
         color: p.textPrimary,
       ),
-      // TextField 默认输入文字走 bodyLarge；压到 13 与全局刻度对齐，
-      // 避免弹窗/表单里的输入文字比卡片标题大一截。
+      // 表单与正文保持相近字号，提升长时间阅读的舒适度。
       bodyLarge: base.bodyLarge?.copyWith(
-        fontSize: 13,
+        fontSize: 14,
         color: p.textPrimary,
         height: 1.5,
       ),
       bodyMedium: base.bodyMedium?.copyWith(
-        fontSize: 12,
+        fontSize: 13,
         color: p.textPrimary,
         height: 1.5,
       ),
@@ -370,7 +372,7 @@ abstract final class AppTheme {
         height: 1.4,
       ),
       labelLarge: base.labelLarge?.copyWith(
-        fontSize: 12,
+        fontSize: 13,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.1,
       ),

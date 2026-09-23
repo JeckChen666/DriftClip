@@ -7,9 +7,7 @@ import '../services/settings_store.dart';
 /// 设置页：监听开关、登录自动启动、服务地址与 Key 状态。
 /// 手动输入和历史查看不要求监听开启（Spec §5.2）。
 ///
-/// 整页使用统一的 48h 行布局（与列表卡 + 详情面板行同节奏），
-/// SwitchListTile/ListTile 容易把行撑到 64-72h，与全局刻度割裂，
-/// 所以这里改用自绘行：图标 18 + 标题/副标题 + 右侧控件。
+/// 分组卡片搭配独立图标底色，说明文字自然换行，适配桌面与移动端。
 class SettingsScreen extends StatefulWidget {
   final SettingsStore settings;
   final ClipboardMonitor monitor;
@@ -59,7 +57,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 640),
           child: ListView(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(24),
             children: [
               const _SectionHeader('同步'),
               _SectionCard(
@@ -75,7 +73,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 24),
               const _SectionHeader('启动'),
               _SectionCard(
                 children: [
@@ -90,7 +88,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 24),
               const _SectionHeader('连接'),
               _SectionCard(
                 children: [
@@ -118,7 +116,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   '手动输入与历史查看不要求开启监听。'
                   '监听仅在应用运行/前台时生效，后台持续监听取决于系统限制。',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 12,
                     height: 1.5,
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -146,7 +144,7 @@ class _SectionHeader extends StatelessWidget {
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.5,
           color: scheme.onSurfaceVariant,
@@ -173,7 +171,7 @@ class _SectionCard extends StatelessWidget {
 
 /// 设置项单行：左图标 + 中标题副标题 + 右侧控件。
 ///
-/// 固定 40h 与全局节奏一致；图标 16、标题 13 w600、副标题 11 muted。
+/// 使用最小高度并允许说明换行，兼顾窄屏和系统文字缩放。
 class _SettingRow extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -191,12 +189,19 @@ class _SettingRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-      child: SizedBox(
-        height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 48),
         child: Row(
           children: [
-            Icon(icon, size: 16, color: scheme.onSurfaceVariant),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: scheme.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, size: 20, color: scheme.onPrimaryContainer),
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
@@ -208,7 +213,7 @@ class _SettingRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: scheme.onSurface,
                     ),
@@ -216,10 +221,8 @@ class _SettingRow extends StatelessWidget {
                   if (subtitle != null)
                     Text(
                       subtitle!,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 12,
                         height: 1.3,
                         color: scheme.onSurfaceVariant,
                       ),

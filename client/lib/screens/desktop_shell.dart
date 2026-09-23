@@ -150,16 +150,27 @@ class _DesktopShellState extends State<DesktopShell> {
         child: Scaffold(
           body: Row(
             children: [
-              NavSidebar(
-                key: ValueKey('nav-$_settingsTick'),
-                selectedPlatform: _platformFilter,
-                onPlatformChanged: (p) => setState(() => _platformFilter = p),
-                totalCount: allRecords.length,
-                platformCounts: platformCounts,
-                listening: widget.settings.listenEnabled,
-                onOpenSettings: _openSettings,
-                onManualInput: _openManualInput,
-                onRefresh: _refresh,
+              ValueListenableBuilder<int?>(
+                valueListenable: _selectedId,
+                builder: (context, id, _) {
+                  // 窄桌面窗口展开详情时暂时收起导航，给正文保留可读宽度。
+                  // 关闭详情后恢复原平台筛选和导航位置。
+                  if (id != null && MediaQuery.sizeOf(context).width < 1040) {
+                    return const SizedBox.shrink();
+                  }
+                  return NavSidebar(
+                    key: ValueKey('nav-$_settingsTick'),
+                    selectedPlatform: _platformFilter,
+                    onPlatformChanged: (p) =>
+                        setState(() => _platformFilter = p),
+                    totalCount: allRecords.length,
+                    platformCounts: platformCounts,
+                    listening: widget.settings.listenEnabled,
+                    onOpenSettings: _openSettings,
+                    onManualInput: _openManualInput,
+                    onRefresh: _refresh,
+                  );
+                },
               ),
               Expanded(
                 child: HistoryContent(

@@ -83,10 +83,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        tooltip: '手动输入',
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: _openManualInput,
-        child: const Icon(Icons.edit),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('手动输入'),
       ),
       body: HistoryContent(
         key: _contentKey,
