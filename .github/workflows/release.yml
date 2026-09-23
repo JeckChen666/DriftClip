@@ -64,7 +64,7 @@ jobs:
           fi
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.goos }}-${{ matrix.goarch }}
+          name: dist-server-${{ matrix.goos }}-${{ matrix.goarch }}
           path: /tmp/out/driftclip-server-*.*
 
   # GHCR 镜像：复用 deploy/Dockerfile（多阶段，内含 Web 与 Go 构建）。
@@ -139,7 +139,7 @@ jobs:
         run: tar czf DriftClip-${{ matrix.platform }}.tar.gz -C client/build/linux/x64/release/bundle .
       - uses: actions/upload-artifact@v4
         with:
-          name: client-${{ matrix.platform }}
+          name: dist-client-${{ matrix.platform }}
           path: DriftClip-${{ matrix.platform }}.*
 
   # Android APK（debug 签名，可直接安装）。
@@ -162,7 +162,7 @@ jobs:
         working-directory: client
       - uses: actions/upload-artifact@v4
         with:
-          name: client-android
+          name: dist-client-android
           path: client/build/app/outputs/flutter-apk/app-release.apk
 
   # 汇总产物并创建 GitHub Release。
@@ -173,9 +173,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
-          # 只取构建产物；排除 docker buildx 的 gha 缓存 artifact
-          # （形如 owner~repo~XXX.dockerbuild，会导致 v4 下载失败）。
-          pattern: '{linux,darwin,windows}-*,client-*'
+          # 所有构建产物统一 dist- 前缀；排除 docker buildx 的 gha 缓存
+          # artifact（形如 owner~repo~XXX.dockerbuild，会导致 v4 下载失败）。
+          pattern: 'dist-*'
           merge-multiple: true
           path: assets
       - name: Rename Android APK
@@ -187,5 +187,5 @@ jobs:
 
             - `driftclip-server-*`: server binary + web UI + example config (run from the bundle directory)
             - `DriftClip-*`: native clients (macOS builds are unsigned; see README for the Gatekeeper note)
-            - Docker image: `ghcr.io/${{ github.repository }}:${{ github.ref_name }}` (repo name lowercased)
+            - Docker image: `ghcr.io/jeckchen666/driftclip:${{ github.ref_name }}`
           files: assets/*
