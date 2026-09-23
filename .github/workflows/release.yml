@@ -132,7 +132,8 @@ jobs:
         run: Compress-Archive -Path client/build/windows/x64/runner/Release/* -DestinationPath DriftClip-${{ matrix.platform }}.zip
       - name: Package (macOS)
         if: runner.os == 'macOS'
-        run: cd client/build/macos/Build/Products/Release && ditto -c -k --keepParent DriftClip.app "$OLDPWD/DriftClip-${{ matrix.platform }}.zip"
+        # 产物名跟随 Xcode 工程（当前为 driftclip_client.app），用通配符避免硬编码。
+        run: cd client/build/macos/Build/Products/Release && ditto -c -k --keepParent *.app "$OLDPWD/DriftClip-${{ matrix.platform }}.zip"
       - name: Package (Linux)
         if: runner.os == 'Linux'
         run: tar czf DriftClip-${{ matrix.platform }}.tar.gz -C client/build/linux/x64/release/bundle .
