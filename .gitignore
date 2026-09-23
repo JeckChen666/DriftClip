@@ -69,3 +69,4 @@ yarn-error.log*
 
 # --- ZCode 会话产物 ---
 .zcode/
+.v2c/
