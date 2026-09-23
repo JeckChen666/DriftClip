@@ -1,97 +1,121 @@
 # DriftClip
 
-自托管的多平台文本粘贴板历史服务。用户在各设备上复制文本或手动输入文本后，客户端将内容上传到服务端；同一账户下的设备和 Web 端都可以查看、复制及管理这些历史记录。
+**Self-hosted clipboard history. Copy on one device, find it on all of them.**
 
-第一版支持 Windows、macOS、Linux、Android、iOS 和 Web。
+[![CI](https://github.com/JeckChen666/DriftClip/actions/workflows/ci.yml/badge.svg)](https://github.com/JeckChen666/DriftClip/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/JeckChen666/DriftClip)](https://github.com/JeckChen666/DriftClip/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## 技术栈
+English | [简体中文](README.zh-CN.md)
 
-| 模块 | 技术 |
+DriftClip captures the text you copy on any device and keeps a synced, searchable history in one place. Run the server on your own machine or VPS, sign in from the web or the native apps, and never lose a link, command, or address again.
+
+- Everything stays on infrastructure you control — a single Go binary with SQLite, no external services
+- Multi-user with strict per-account isolation; web login via email + password, native apps via per-account API key
+- Filter and search history by platform, text, and time; copy, delete, batch-delete, or clear all
+- Text-only by design (max 100 KiB per record by default), with a per-account retention cap
+
+| Web history | Mobile |
 | --- | --- |
-| 服务端 | Go + SQLite |
-| Web 端 | React |
-| 原生客户端 | Flutter |
-| 部署 | Docker Compose |
+| ![Web history](docs/screenshots/web-history.png) | ![Mobile](docs/screenshots/web-mobile.png) |
 
-## 功能概览
+Key management (each key is shown only once):
 
-- 采集并保存纯文本粘贴板内容，支持手动输入上传
-- 同一账户下的全部原生客户端与 Web 端可查看远端历史
-- 支持删除、筛选、复制历史记录
-- 多用户，数据按账户严格隔离
-- Web 使用账号密码登录；原生客户端使用 Key 访问账户历史
+![Key management](docs/screenshots/web-keys.png)
 
-## 目录结构
+## Architecture
 
-```
-server/   # Go 服务端（API + SQLite + 托管 React 静态产物）
-web/      # React Web 端
-client/   # Flutter 原生客户端（Windows/macOS/Linux/Android/iOS）
-```
+| Module | Tech | Role |
+| --- | --- | --- |
+| `server/` | Go + SQLite | REST API, auth, retention, hosts the built web UI |
+| `web/` | React + Vite | Browser client for browsing and managing history |
+| `client/` | Flutter | Native apps for Windows / macOS / Linux / Android / iOS |
 
-## 详细方案
-
-见 [CLIPBOARD_SYNC_V1_PLAN.md](CLIPBOARD_SYNC_V1_PLAN.md)。
-
-## 部署
-
-### Docker Compose（推荐）
+## Quick start (Docker)
 
 ```bash
-cd deploy
+git clone https://github.com/JeckChen666/DriftClip.git
+cd DriftClip/deploy
 export DRIFTCLIP_SESSION_SECRET="$(openssl rand -hex 32)"
 export DRIFTCLIP_KEY_PEPPER="$(openssl rand -hex 32)"
 docker compose up -d --build
 ```
 
-- SQLite 数据持久化在 `driftclip-data` 卷（V1 §8.1）。**备份与灾难恢复由部署者负责**（无自动备份）。
-- 应用仅回环暴露 `127.0.0.1:8080`；HTTPS、域名、证书与公网反向代理由部署者负责，应用不直接暴露公网。
-- 反向代理需设置 `DRIFTCLIP_SERVER_TRUSTED_PROXIES`（内网 CIDR，逗号分隔），服务端才信任其 `X-Forwarded-For` / `X-Forwarded-Proto` 头。
-- `DRIFTCLIP_SERVER_REQUIRE_HTTPS=true` 已在 Compose 开启：请求必须经可信代理以 HTTPS 转发，否则被拒绝（验收 10）。
-- 关闭注册：`docker compose run --rm -e DRIFTCLIP_REGISTRATION_ENABLED=false ...` 或配置挂载。
+The service listens on `127.0.0.1:8080` and keeps data in the `driftclip-data` volume. It is not meant to be exposed directly: put it behind your own reverse proxy with HTTPS, and set `DRIFTCLIP_SERVER_TRUSTED_PROXIES` (see [deploy/docker-compose.yml](deploy/docker-compose.yml)) — with `require_https` enabled the server rejects requests that did not arrive via a trusted HTTPS proxy.
 
-### 配置
-
-所有配置见 [deploy/config.example.yaml](deploy/config.example.yaml)，均可被 `DRIFTCLIP_*` 环境变量覆盖。
-
-| 关键项 | 说明 |
-| --- | --- |
-| `session_secret` / `key_pepper` | 必须替换为强随机值；只能由部署者安全保存，绝不入日志 |
-| `history.max_history_records` | 每账户历史上限，调低重启后立即清理 |
-| `history.max_clipboard_text_bytes` | 单条正文上限（默认 100 KiB） |
-| `server.trusted_proxies` | 反向代理内网 CIDR；未配置时用直连地址作为客户端 IP |
-
-### 本地开发运行
+A prebuilt image is also published to GHCR on every release:
 
 ```bash
-# 1. 服务端（配置已默认 goproxy.cn 镜像）
-cd server && go run ./cmd/driftclip-server
-
-# 2. Web 端（Vite dev server，/api 代理到 8080）
-cd web && npm install && npm run dev   # 打开 http://localhost:5173
+docker run -d --name driftclip -p 127.0.0.1:8080:8080 -v driftclip-data:/data \
+  -e DRIFTCLIP_DATABASE_PATH=/data/driftclip.sqlite \
+  -e DRIFTCLIP_SESSION_SECRET="$(openssl rand -hex 32)" \
+  -e DRIFTCLIP_KEY_PEPPER="$(openssl rand -hex 32)" \
+  ghcr.io/jeckchen666/driftclip:latest
 ```
 
-生产形态下单二进制服务同时提供 API 与 Web：
+### First run
 
-```bash
-cd web && npm run build        # 产出 web/dist
-cd server && go build -o driftclip-server ./cmd/driftclip-server
-./driftclip-server             # 默认托管 web/dist，SPA 路由自动 fallback
-```
+1. Open the web UI (e.g. `http://127.0.0.1:8080` locally) and register an account.
+2. Go to **Keys** and generate your API key — it is displayed exactly once, store it safely.
+3. Install a native client, enter your server address and the key in the onboarding/settings screen.
+4. Copy something on any connected device — it appears in the history everywhere.
 
-### 客户端服务地址
+Registration can be disabled for existing deployments (`DRIFTCLIP_REGISTRATION_ENABLED=false`).
 
-原生客户端默认服务地址在打包时内置（Spec §8.1）：
+## Native clients
+
+Prebuilt clients for Windows, macOS, Linux, and Android are attached to every [release](https://github.com/JeckChen666/DriftClip/releases). Server release bundles include the binary, the web UI, and an example config.
+
+- **macOS**: downloads are unsigned. If Gatekeeper blocks the app, remove the quarantine attribute: `xattr -cr /Applications/DriftClip.app`
+- **Linux**: the bundle needs the usual Flutter runtime libraries (`libgtk-3-0`, `libblkid1`, `liblzma5`, …)
+- **Android**: sideload the APK
+- **iOS**: build from source with Xcode and your own signing (App Store distribution is up to you)
+
+Build from source instead:
 
 ```bash
 cd client
-flutter build macos --dart-define=DRIFTCLIP_API_BASE=https://your.domain
+flutter pub get
+flutter build macos --release   # windows / linux / apk / ipa likewise
 ```
 
-用户也可在客户端设置页修改服务地址。
+## Configuration
 
-## 开发环境
+All settings live in [deploy/config.example.yaml](deploy/config.example.yaml) and can be overridden with `DRIFTCLIP_*` environment variables. The ones that matter most:
 
-- Go 1.26+
-- Flutter 3.44+
-- Node.js 24+
+| Setting | Notes |
+| --- | --- |
+| `session_secret` / `key_pepper` | Required strong random values; never commit or log them |
+| `server.require_https` | Reject non-HTTPS requests (enable behind a TLS proxy) |
+| `server.trusted_proxies` | Proxy CIDRs allowed to set `X-Forwarded-*` headers |
+| `history.max_history_records` | Per-account cap (default 100); lowering it prunes on restart |
+| `history.max_clipboard_text_bytes` | Per-record size cap (default 100 KiB) |
+
+## Development
+
+Prerequisites: Go 1.26+, Node.js 24+, Flutter 3.44+.
+
+```bash
+# Server (API on :8080, serves web/dist when present)
+cd server && go run ./cmd/driftclip-server
+go test ./... && go vet ./...
+
+# Web (dev server on :5173, proxies /api to :8080)
+cd web && npm install && npm run dev
+npm run lint && npm test
+
+# Client
+cd client && flutter run -d macos
+flutter analyze && flutter test
+```
+
+See [DEVELOPMENT.md](DEVELOPMENT.md) for the full debugging manual and [docs/CLIPBOARD_SYNC_V1_PLAN.md](docs/CLIPBOARD_SYNC_V1_PLAN.md) for the design and acceptance criteria.
+
+## Contributing & security
+
+- Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md)
+- Found a security issue? Please report privately as described in [SECURITY.md](SECURITY.md); do not open a public issue
+
+## License
+
+[MIT](LICENSE) © JeckChen666
