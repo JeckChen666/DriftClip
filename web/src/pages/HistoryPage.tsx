@@ -218,11 +218,11 @@ export function HistoryPage() {
 
   return (
     <section className="flex flex-col gap-5">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5">
         <h1 className="text-display font-heavy tracking-[-0.4px] text-foreground m-0">
           历史
         </h1>
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
           <span className="text-body-sm text-muted-foreground">
             共 {total} 条 · 第 {page}/{totalPages} 页
           </span>
@@ -234,7 +234,10 @@ export function HistoryPage() {
               setAutoRefresh(n)
             }}
           >
-            <SelectTrigger className="h-control-md w-[150px]" aria-label="自动刷新间隔">
+            <SelectTrigger
+              className="h-control-md w-[136px] sm:w-[150px]"
+              aria-label="自动刷新间隔"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -259,9 +262,10 @@ export function HistoryPage() {
       {/* 筛选栏（Spec §6.2：组合筛选 AND 关系，正文匹配忽略英文字母大小写） */}
       <Card>
         <CardContent className="p-4">
+          {/* 移动端：选择/搜索一行、两个时间一行、按钮一行自然换行；桌面保持单行。 */}
           <div className="flex flex-wrap items-center gap-2">
             <Select value={platform} onValueChange={setPlatform}>
-              <SelectTrigger className="w-[140px]" aria-label="平台筛选">
+              <SelectTrigger className="w-[132px] sm:w-[140px]" aria-label="平台筛选">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -279,21 +283,21 @@ export function HistoryPage() {
               placeholder="正文包含…"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              className="flex-1 min-w-[160px]"
+              className="min-w-0 flex-1"
             />
             <Input
               aria-label="起始时间"
               type="datetime-local"
               value={from}
               onChange={(e) => setFrom(e.target.value)}
-              className="w-[200px]"
+              className="min-w-0 flex-1 sm:w-[200px] sm:flex-none"
             />
             <Input
               aria-label="结束时间"
               type="datetime-local"
               value={to}
               onChange={(e) => setTo(e.target.value)}
-              className="w-[200px]"
+              className="min-w-0 flex-1 sm:w-[200px] sm:flex-none"
             />
             <Button onClick={applyFilter} size="sm">
               应用
@@ -392,7 +396,7 @@ export function HistoryPage() {
                   )}
                 >
                   <CardContent className="flex flex-col gap-2 p-4">
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                       <Checkbox
                         aria-label={`选择记录 ${it.id}`}
                         checked={isSelected}
@@ -402,14 +406,12 @@ export function HistoryPage() {
                       <Badge variant={it.source === 'manual' ? 'manual' : 'primary'}>
                         {it.source === 'manual' ? '手动' : '剪贴板'}
                       </Badge>
-                      <span className="text-caption text-muted-foreground tabular-nums">
+                      {/* 时间与设备合并为一个可截断的整体，窄屏下省略而不是拆成两行。 */}
+                      <span className="min-w-0 truncate text-caption text-muted-foreground tabular-nums">
                         {formatRelative(it.received_at)}
+                        {(it.device_model || it.os_version) &&
+                          ` · ${it.device_model || it.os_version}`}
                       </span>
-                      {(it.device_model || it.os_version) && (
-                        <span className="text-caption text-muted-foreground">
-                          · {it.device_model || it.os_version}
-                        </span>
-                      )}
                       {/* 操作区常驻在右上角，hover 时才浮现，保持列表安静。 */}
                       <div className="ml-auto flex items-center gap-0.5 opacity-60 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
                         <Button
@@ -433,7 +435,7 @@ export function HistoryPage() {
                         </Button>
                       </div>
                     </div>
-                    <div className="whitespace-pre-wrap break-words text-body text-foreground">
+                    <div className="line-clamp-2 whitespace-pre-wrap break-words text-body text-foreground">
                       {it.content_preview}
                     </div>
                     <div>
