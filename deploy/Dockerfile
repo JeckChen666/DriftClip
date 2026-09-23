@@ -2,7 +2,7 @@
 # 构建上下文为仓库根目录（docker compose build 时由 dockerfile 相对路径确定）。
 
 # --- Stage 1: 构建 React Web 产物 ---
-FROM node:24-alpine AS web-build
+FROM node:25-alpine AS web-build
 WORKDIR /build/web
 COPY web/package.json web/package-lock.json ./
 RUN npm ci
