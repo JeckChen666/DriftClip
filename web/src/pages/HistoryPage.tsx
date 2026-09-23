@@ -34,6 +34,7 @@ import {
   setAutoRefreshSeconds,
 } from '@/lib/api'
 import type { HistoryDetail, HistoryFilter, HistoryListItem } from '@/lib/api'
+import { formatAbsolute, formatRelative } from '@/lib/time'
 import { cn } from '@/lib/utils'
 
 const PAGE_SIZE = 20
@@ -402,7 +403,7 @@ export function HistoryPage() {
                         {it.source === 'manual' ? '手动' : '剪贴板'}
                       </Badge>
                       <span className="text-caption text-muted-foreground tabular-nums">
-                        {it.received_at}
+                        {formatRelative(it.received_at)}
                       </span>
                       {(it.device_model || it.os_version) && (
                         <span className="text-caption text-muted-foreground">
@@ -461,7 +462,7 @@ export function HistoryPage() {
                           <dd className="m-0 text-foreground">{details[it.id].source}</dd>
                           <dt>接收时间</dt>
                           <dd className="m-0 text-foreground tabular-nums">
-                            {details[it.id].received_at}
+                            {formatAbsolute(details[it.id].received_at)}
                           </dd>
                           <dt>IP</dt>
                           <dd className="m-0 font-mono text-foreground">
