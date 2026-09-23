@@ -1,4 +1,4 @@
-# DriftClip 服务端配置示例（对齐 CLIPBOARD_SYNC_V1_PLAN.md §8.2）。
+# DriftClip 服务端配置示例（对齐 docs/CLIPBOARD_SYNC_V1_PLAN.md §8.2）。
 # 每个字段都可被对应的 DRIFTCLIP_* 环境变量覆盖（见 server/internal/config）。
 server:
   listen_addr: "0.0.0.0:8080"

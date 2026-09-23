@@ -1,10 +1,10 @@
 // P04 Web 增强 E2E：组合筛选、多选删除、清空全部（5s 确认）。
 // 前置：Go 服务 8080 + Vite 5173。
 import { chromium } from 'playwright'
-import { mkdirSync } from 'node:fs'
+import { join } from 'node:path'
 
 const BASE = 'http://localhost:5173'
-const SHOT_DIR = '/Users/macos/Code/DriftClip/docs/easypower/clipboard-sync/evidence/P04-e2e'
+const SHOT_DIR = join(import.meta.dirname, '../../output/e2e/P04-e2e')
 const email = `e2e-p04-${Date.now()}@example.com`
 const records = [
   { content: 'alpha 内容', platform: 'macos' },

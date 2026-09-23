@@ -55,7 +55,7 @@ npm run dev        # 打开 http://localhost:5173（需服务端已启动，/api
   node scripts/e2e-p02.mjs   # 核心闭环：注册→Key→上传→列表→详情→删除
   node scripts/e2e-p04.mjs   # 增强：筛选→批量删除→清空 5s 确认
   ```
-  E2E 截图输出到 `docs/easypower/clipboard-sync/evidence/P0X-e2e/`。
+  E2E 截图输出到仓库根 `output/e2e/P0X-e2e/`（已被 gitignore）。
 - **调试**：浏览器 DevTools；Vite HMR 即时刷新。CSRF 契约：所有状态修改请求需带 `X-Requested-With: XMLHttpRequest`（`src/lib/api.ts` 已自动处理）。
 
 ## 4. 客户端（Flutter）调试

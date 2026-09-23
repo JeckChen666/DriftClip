@@ -3,10 +3,10 @@
 //
 // 前置：Go 服务 127.0.0.1:8080 + Vite dev server 5173 已启动。
 import { chromium } from 'playwright'
-import { mkdirSync } from 'node:fs'
+import { join } from 'node:path'
 
 const BASE = 'http://localhost:5173'
-const SHOT_DIR = '/Users/macos/Code/DriftClip/docs/easypower/clipboard-sync/evidence/P02-e2e'
+const SHOT_DIR = join(import.meta.dirname, '../../output/e2e/P02-e2e')
 const email = `e2e-${Date.now()}@example.com`
 const password = 'pw123'
 const CONTENT = `E2E 验证记录 ${Date.now()}：多设备剪贴板同步`

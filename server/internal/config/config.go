@@ -1,7 +1,7 @@
 // Package config 负责加载和校验 DriftClip 服务端配置。
 //
 // 配置来源优先级：默认值 < YAML 文件 < 环境变量（DRIFTCLIP_*）。
-// YAML 键名与 CLIPBOARD_SYNC_V1_PLAN.md §8.2 保持一致。
+// YAML 键名与 docs/CLIPBOARD_SYNC_V1_PLAN.md §8.2 保持一致。
 package config
 
 import (

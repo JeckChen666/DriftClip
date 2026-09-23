@@ -70,3 +70,9 @@ yarn-error.log*
 # --- ZCode 会话产物 ---
 .zcode/
 .v2c/
+
+# --- 本地 AI 工具与内部开发流程产物（仅存在于本机，不入库）---
+.agents/
+.claude/
+skills-lock.json
+docs/easypower/
