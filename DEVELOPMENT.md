@@ -49,7 +49,7 @@ npm run dev        # 打开 http://localhost:5173（需服务端已启动，/api
 ```
 
 - **构建**：`npm run build` → 产物 `web/dist`（由 Go 服务托管，单二进制交付）。
-- **组件测试**：`npm test`（Vitest + Testing Library，11 个用例）。
+- **组件测试**：`npm test`（Vitest + Testing Library，13 个用例）。
 - **端到端（Playwright，真实浏览器）**：先起服务端 + `npm run dev`，再：
   ```bash
   node scripts/e2e-p02.mjs   # 核心闭环：注册→Key→上传→列表→详情→删除
@@ -75,9 +75,45 @@ flutter run -d macos          # 默认 debug：JIT + 热重载
 flutter run -d macos --release        # 正式性能模式（AOT）
 flutter build macos --debug           # 仅构建 debug app，不进入交互会话
 flutter build macos --release         # 构建发布包
-flutter test                          # 单元/Widget 测试（22 个用例）
+flutter test                          # 单元/Widget 测试（46 个用例）
 flutter analyze                       # 静态检查
 ```
+
+### Android 签名
+
+Release APK 的签名配置在 `client/android/app/build.gradle.kts`：优先读环境变量
+（CI 注入 secrets），其次读 `client/android/key.properties`（已被 .gitignore 忽略），
+两者都缺失时回退 debug 签名（仅供本地验证，不可用于发布）。
+
+本地生成正式签名密钥（只做一次，妥善保管，**不要提交进仓库**）：
+
+```bash
+keytool -genkey -v -keystore ~/driftclip-release.keystore.jks \
+  -alias driftclip -keyalg RSA -keysize 2048 -validity 10000
+```
+
+本地构建（任选一种方式提供密钥）：
+
+```bash
+# 方式一：key.properties
+cat > client/android/key.properties <<'EOF'
+storeFile=/Users/you/driftclip-release.keystore.jks
+storePassword=你的store密码
+keyAlias=driftclip
+keyPassword=你的key密码
+EOF
+
+# 方式二：环境变量
+export DRIFTCLIP_ANDROID_KEYSTORE_PATH=~/driftclip-release.keystore.jks
+export DRIFTCLIP_ANDROID_KEYSTORE_PASSWORD=...
+export DRIFTCLIP_ANDROID_KEY_ALIAS=driftclip
+export DRIFTCLIP_ANDROID_KEY_PASSWORD=...
+```
+
+CI（release.yml 的 android job）从仓库 secrets 读取，需配置四项：
+`ANDROID_KEYSTORE_BASE64`（keystore 文件的 base64）、`ANDROID_KEYSTORE_PASSWORD`、
+`ANDROID_KEY_ALIAS`、`ANDROID_KEY_PASSWORD`。未配置时构建仍会成功但回退 debug
+签名，并在构建摘要中提示。
 
 ### 服务地址
 
@@ -97,6 +133,23 @@ flutter build macos --dart-define=DRIFTCLIP_API_BASE=https://your.domain
 | iOS | ✅ | Xcode 已含 iOS SDK；真机需 Apple ID 签名 |
 | Android | ❌ | 需装 Android SDK |
 | Windows / Linux 桌面 | ❌ | Flutter 不支持 Mac 交叉构建，需对应平台或 CI |
+
+### 真机验收清单（ROADMAP 自动化未覆盖项）
+
+P0–P3 改进（docs/ROADMAP.md）中依赖真实设备/系统的验收项：
+
+| # | 项目 | 步骤 | 预期 |
+| --- | --- | --- | --- |
+| 1 | Android release 联网 | 安装 release APK → 配置服务端 | 能同步历史（此前 release 包缺 INTERNET 权限，完全断网） |
+| 2 | Android/iOS 明文 HTTP | 连接 `http://内网IP:8080` | 可用（此前被系统静默拦截） |
+| 3 | Android 扫码导入 | Web「Key 管理」页展示二维码 → 客户端「扫码导入」 | 自动填入服务地址与 Key，保存连通 |
+| 4 | iOS 相机权限 | 首次扫码导入 | 弹出相机用途说明（NSCameraUsageDescription） |
+| 5 | macOS 托盘常驻 | 启动应用 → 关闭主窗口 | ✅ 托盘图标已本机截图验证（2026-09-26）；关闭主窗口后进程常驻、复制仍入库仍需手动确认 |
+| 6 | macOS 登录项 | 设置开启「登录自启动」→ 系统设置→通用→登录项 | 出现 DriftClip；重启后自动启动并恢复监听 |
+| 7 | Windows/Linux 托盘与自启动 | 同 5/6 | 关窗最小化到托盘；注册表/.desktop 生效 |
+| 8 | 断网补传 | 断网复制 3 条 → 恢复网络 | 界面/托盘显示「待同步」，恢复后按序补传 |
+| 9 | 服务端限流 | 同一 IP 连续登录失败 >10 次/分 | 第 11 次返回 429（自动化已覆盖，真机复核网关行为） |
+| 10 | Web 连接引导 | 注册 → Key 管理页生成 Key | 出现下载链接、服务地址与二维码；扫码/复制可用 |
 
 ## 5. 部署调试
 

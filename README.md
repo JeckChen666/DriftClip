@@ -71,6 +71,11 @@ Prebuilt clients for Windows, macOS, Linux, and Android are attached to every [r
 - **Android**: sideload the APK
 - **iOS**: build from source with Xcode and your own signing (App Store distribution is up to you)
 
+Mobile notes:
+
+- Plain-HTTP servers (`http://LAN-IP:8080`) are common for self-hosting, so the mobile apps allow cleartext traffic. Prefer HTTPS (behind your reverse proxy) whenever possible — clipboard content is sensitive.
+- Mobile capture only runs while the app is in the foreground (OS restriction on background clipboard access). The core mobile scenario is *retrieval*: browse and copy history captured on your other devices.
+
 Build from source instead:
 
 ```bash
@@ -88,8 +93,9 @@ All settings live in [deploy/config.example.yaml](deploy/config.example.yaml) an
 | `session_secret` / `key_pepper` | Required strong random values; never commit or log them |
 | `server.require_https` | Reject non-HTTPS requests (enable behind a TLS proxy) |
 | `server.trusted_proxies` | Proxy CIDRs allowed to set `X-Forwarded-*` headers |
-| `history.max_history_records` | Per-account cap (default 100); lowering it prunes on restart |
+| `history.max_history_records` | Per-account cap (default 1000); lowering it prunes on restart |
 | `history.max_clipboard_text_bytes` | Per-record size cap (default 100 KiB) |
+| `rate_limit.*` | In-memory sliding-window limits: auth (per IP, 10/min) and upload (per account, 120/min); disable with `enabled: false` |
 
 ## Development
 

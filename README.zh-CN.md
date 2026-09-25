@@ -71,6 +71,11 @@ docker run -d --name driftclip -p 127.0.0.1:8080:8080 -v driftclip-data:/data \
 - **Android**：直接安装 APK
 - **iOS**：需用 Xcode 自行构建并签名（是否上架由你决定）
 
+移动端说明：
+
+- 自托管常见 `http://内网IP:8080` 场景，移动端已允许明文 HTTP；剪贴板内容较敏感，条件允许时请优先通过反向代理启用 HTTPS。
+- 移动端仅在前台采集剪贴板（系统对后台读取的限制）。移动端核心场景是**取回**：查看并复制其他设备捕获的历史。
+
 从源码构建：
 
 ```bash
@@ -90,6 +95,7 @@ flutter build macos --release   # windows / linux / apk / ipa 同理
 | `server.trusted_proxies` | 允许设置 `X-Forwarded-*` 头的代理 CIDR |
 | `history.max_history_records` | 每账户历史上限（默认 100），调低重启后立即清理 |
 | `history.max_clipboard_text_bytes` | 单条正文上限（默认 100 KiB） |
+| `rate_limit.*` | 内存滑动窗口限流：注册/登录按来源 IP（10 次/分），上传按账户（120 次/分）；`enabled: false` 可关闭 |
 
 ## 开发
 
