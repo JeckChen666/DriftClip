@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -154,5 +155,40 @@ class ApiClient {
     return ApiResult.ok(
       ((r.data as Map<String, dynamic>)['deleted'] as num).toInt(),
     );
+  }
+
+  /// 用给定服务地址与 Key 校验连通性（GET /api/v1/history，8 秒超时）。
+  /// 用于 Key 配置保存前的即时反馈；不读取也不修改已持久化的配置。
+  /// 返回错误描述；成功返回 null。
+  Future<String?> validate({
+    required String baseUrl,
+    required String key,
+  }) async {
+    final uri = Uri.tryParse('$baseUrl/api/v1/history');
+    final scheme = uri?.scheme.toLowerCase();
+    if (uri == null || (scheme != 'http' && scheme != 'https') || uri.host.isEmpty) {
+      return '服务地址格式不正确';
+    }
+    try {
+      final res = await _client
+          .get(uri, headers: {'Authorization': 'Bearer $key'})
+          .timeout(const Duration(seconds: 8));
+      if (res.statusCode >= 200 && res.statusCode < 300) return null;
+      if (res.statusCode == 401 || res.statusCode == 403) {
+        return '连接成功但 Key 无效（HTTP ${res.statusCode}），请检查 Key';
+      }
+      String? msg;
+      try {
+        final decoded = jsonDecode(res.body);
+        msg = (decoded as Map<String, dynamic>)['error'] as String?;
+      } catch (_) {
+        // 忽略解析失败，使用默认错误信息
+      }
+      return msg ?? '服务器返回 HTTP ${res.statusCode}';
+    } on TimeoutException {
+      return '连接超时，请检查服务地址与端口';
+    } catch (_) {
+      return '无法连接服务器，请检查服务地址与网络';
+    }
   }
 }

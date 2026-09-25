@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'key_config_screen.dart';
 import '../services/clipboard_monitor.dart';
 import '../services/desktop_integration.dart';
 import '../services/settings_store.dart';
@@ -49,35 +48,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
     widget.desktop.setAutoStart(v);
   }
 
-  /// 弹窗编辑服务地址；取消返回 null，保存返回输入值。
-  Future<void> _editBaseUrl() async {
-    final url = await showDialog<String>(
+  /// 弹窗编辑连接（服务地址 + Key 一起改）：保存前校验连通性，
+  /// 成功后刷新本页展示并提示。取消返回 false。
+  Future<void> _editConnection() async {
+    final saved = await showDialog<bool>(
       context: context,
-      builder: (_) => _BaseUrlDialog(initial: widget.settings.apiBaseUrl),
-    );
-    if (url == null || !mounted) return;
-    await widget.settings.setApiBaseUrl(url);
-    if (mounted) {
-      setState(() {});
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('服务地址已更新：${widget.settings.apiBaseUrl}')),
-      );
-    }
-  }
-
-  /// 重新进入 Key 配置页修改服务地址与 Key。
-  /// 保存本身已持久化（ApiClient 每次请求动态读取），返回后仅刷新本页展示。
-  Future<void> _reconfigure() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => KeyConfigScreen(
-          settings: widget.settings,
-          uploader: widget.uploader,
-          onSaved: (_) {},
-        ),
+      builder: (_) => _ConnectionDialog(
+        settings: widget.settings,
+        uploader: widget.uploader,
       ),
     );
-    if (mounted) setState(() {});
+    if (saved != true || !mounted) return;
+    setState(() {});
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('连接成功，配置已保存（${widget.settings.apiBaseUrl}）'),
+      ),
+    );
   }
 
   @override
@@ -131,19 +118,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     icon: Icons.dns_rounded,
                     title: '服务地址',
                     subtitle: widget.settings.apiBaseUrl,
-                    trailing: TextButton(
-                      onPressed: _editBaseUrl,
-                      child: const Text('编辑'),
-                    ),
                   ),
                   const Divider(height: 1, indent: 46),
                   _SettingRow(
                     icon: Icons.key_rounded,
                     title: 'Key',
                     subtitle: maskedKey,
-                    trailing: TextButton(
-                      onPressed: _reconfigure,
-                      child: const Text('重新配置'),
+                  ),
+                  const Divider(height: 1, indent: 46),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton.icon(
+                        onPressed: _editConnection,
+                        icon: const Icon(Icons.edit_outlined, size: 16),
+                        label: const Text('编辑连接'),
+                      ),
                     ),
                   ),
                 ],
@@ -169,62 +163,129 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 }
 
-/// 服务地址编辑弹窗：校验 http(s) URL 形态，取消返回 null，保存返回输入值。
-class _BaseUrlDialog extends StatefulWidget {
-  final String initial;
+/// 连接编辑弹窗：服务地址与 Key 一起编辑，保存前校验连通性。
+/// 保存成功 pop(true)；取消/关闭 pop(false)。
+class _ConnectionDialog extends StatefulWidget {
+  final SettingsStore settings;
+  final UploadCoordinator uploader;
 
-  const _BaseUrlDialog({required this.initial});
+  const _ConnectionDialog({required this.settings, required this.uploader});
 
   @override
-  State<_BaseUrlDialog> createState() => _BaseUrlDialogState();
+  State<_ConnectionDialog> createState() => _ConnectionDialogState();
 }
 
-class _BaseUrlDialogState extends State<_BaseUrlDialog> {
-  late final _controller = TextEditingController(text: widget.initial);
+class _ConnectionDialogState extends State<_ConnectionDialog> {
+  late final _urlController = TextEditingController(
+    text: widget.settings.apiBaseUrl,
+  );
+  late final _keyController = TextEditingController(
+    text: widget.settings.apiKey ?? '',
+  );
+  bool _obscureKey = true;
+  bool _checking = false;
   String? _error;
 
   @override
   void dispose() {
-    _controller.dispose();
+    _urlController.dispose();
+    _keyController.dispose();
     super.dispose();
   }
 
-  void _save() {
-    final url = _controller.text.trim();
-    final uri = Uri.tryParse(url);
-    final scheme = uri?.scheme.toLowerCase();
-    if (uri == null ||
-        (scheme != 'http' && scheme != 'https') ||
-        uri.host.isEmpty) {
-      setState(() => _error = '请输入 http(s)://主机[:端口] 形式的地址');
+  Future<void> _save() async {
+    final key = _keyController.text.trim();
+    if (key.isEmpty) {
+      setState(() => _error = '请粘贴 Web 端生成的 Key');
       return;
     }
-    Navigator.of(context).pop(url);
+    setState(() {
+      _error = null;
+      _checking = true;
+    });
+    final problem = await widget.uploader.saveConnection(
+      baseUrl: _urlController.text.trim(),
+      key: key,
+    );
+    if (!mounted) return;
+    if (problem != null) {
+      setState(() {
+        _checking = false;
+        _error = problem;
+      });
+      return;
+    }
+    Navigator.of(context).pop(true);
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('修改服务地址'),
-      content: TextField(
-        controller: _controller,
-        autofocus: true,
-        onSubmitted: (_) => _save(),
-        decoration: InputDecoration(
-          labelText: '服务地址',
-          hintText: 'http://127.0.0.1:8080',
-          prefixIcon: const Icon(Icons.dns_rounded, size: 20),
-          errorText: _error,
-        ),
+      title: const Text('编辑连接'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            controller: _urlController,
+            decoration: const InputDecoration(
+              labelText: '服务地址',
+              hintText: 'http://127.0.0.1:8080',
+              prefixIcon: Icon(Icons.dns_rounded, size: 20),
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _keyController,
+            obscureText: _obscureKey,
+            onSubmitted: (_) => _save(),
+            decoration: InputDecoration(
+              labelText: 'Key',
+              prefixIcon: const Icon(Icons.key_rounded, size: 20),
+              suffixIcon: IconButton(
+                tooltip: _obscureKey ? '显示 Key' : '隐藏 Key',
+                icon: Icon(
+                  _obscureKey
+                      ? Icons.visibility_rounded
+                      : Icons.visibility_off_rounded,
+                  size: 18,
+                ),
+                onPressed: () => setState(() => _obscureKey = !_obscureKey),
+              ),
+            ),
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(
+                  Icons.error_outline_rounded,
+                  size: 14,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    _error!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: _checking ? null : () => Navigator.of(context).pop(false),
           child: const Text('取消'),
         ),
         FilledButton(
-          onPressed: _save,
-          child: const Text('保存'),
+          onPressed: _checking ? null : _save,
+          child: Text(_checking ? '连接中…' : '保存'),
         ),
       ],
     );

@@ -4,6 +4,7 @@ import '../services/settings_store.dart';
 import '../services/upload_coordinator.dart';
 
 /// Key 配置页：设置服务地址与访问 Key。
+/// 保存前先实际请求服务端验证连通性，成功才持久化并提示；失败就地显示原因。
 /// 保存新 Key 时清除本地去重摘要（Spec §4.2：更换 Key 时清除摘要）。
 class KeyConfigScreen extends StatefulWidget {
   final SettingsStore settings;
@@ -25,6 +26,7 @@ class _KeyConfigScreenState extends State<KeyConfigScreen> {
   final _urlController = TextEditingController();
   final _keyController = TextEditingController();
   bool _obscureKey = true;
+  bool _checking = false;
   String? _error;
 
   @override
@@ -46,21 +48,37 @@ class _KeyConfigScreenState extends State<KeyConfigScreen> {
       setState(() => _error = '请粘贴 Web 端生成的 Key');
       return;
     }
-    setState(() => _error = null);
-    await widget.settings.setApiBaseUrl(_urlController.text.trim());
-    // 更换 Key → 清除去重摘要（Spec §4.2）
-    await widget.uploader.onKeyChanged();
-    await widget.settings.setApiKey(key);
+    setState(() {
+      _error = null;
+      _checking = true;
+    });
+    // 保存前先实际请求服务端验证连通性，立刻反馈配置是否可用（而非静默失败）。
+    final problem = await widget.uploader.saveConnection(
+      baseUrl: _urlController.text.trim(),
+      key: key,
+    );
+    if (!mounted) return;
+    if (problem != null) {
+      setState(() {
+        _checking = false;
+        _error = problem;
+      });
+      return;
+    }
     widget.onSaved(key);
+    if (!mounted) return;
+    setState(() => _checking = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('连接成功，配置已保存（${widget.settings.apiBaseUrl}）'),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    // 作为路由重新打开（设置页「重新配置」）时带返回栏；首次启动作为根页面时不带。
-    final canPop = Navigator.of(context).canPop();
     return Scaffold(
-      appBar: canPop ? AppBar(title: const Text('重新配置')) : null,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -174,8 +192,8 @@ class _KeyConfigScreenState extends State<KeyConfigScreen> {
                           ],
                           const SizedBox(height: 14),
                           FilledButton(
-                            onPressed: _save,
-                            child: const Text('保存'),
+                            onPressed: _checking ? null : _save,
+                            child: Text(_checking ? '连接中…' : '保存'),
                           ),
                         ],
                       ),

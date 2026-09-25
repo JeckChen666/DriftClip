@@ -90,4 +90,22 @@ class UploadCoordinator {
 
   /// 更换 Key 时清除去重摘要（Spec §4.2）。
   Future<void> onKeyChanged() => dedup.clear();
+
+  /// 保存连接配置（服务地址 + Key）：先实际请求服务端校验连通性，
+  /// 成功才持久化；失败返回错误描述、不改动任何配置（返回 null 表示成功）。
+  /// Key 发生变化时清除去重摘要（Spec §4.2）。
+  Future<String?> saveConnection({
+    required String baseUrl,
+    required String key,
+  }) async {
+    final problem = await api.validate(baseUrl: baseUrl, key: key);
+    if (problem != null) return problem;
+    final keyChanged = settings.apiKey != key;
+    await settings.setApiBaseUrl(baseUrl);
+    if (keyChanged) {
+      await onKeyChanged();
+    }
+    await settings.setApiKey(key);
+    return null;
+  }
 }
