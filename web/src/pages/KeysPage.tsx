@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/components/ui/toast'
 import { ApiError, keys as keysApi } from '@/lib/api'
+import { ConnectGuide } from '@/components/ConnectGuide'
 
 export function KeysPage() {
   const { toast } = useToast()
@@ -210,6 +211,9 @@ export function KeysPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* 连接引导：Key 可见时展示下一步（ROADMAP P2.3） */}
+      {shownKey && <ConnectGuide server={window.location.origin} apiKey={shownKey} />}
     </section>
   )
 }
