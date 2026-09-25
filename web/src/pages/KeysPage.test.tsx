@@ -64,4 +64,40 @@ describe('KeysPage', () => {
     await act(async () => {})
     expect(screen.getByText('new_key')).toBeInTheDocument()
   })
+
+  it('已配置 Key 时可随时查看当前完整 Key 并展示复制按钮', async () => {
+    const user = userEvent.setup()
+    const fetchMock = mockFetch((url) => {
+      if (url === '/api/v1/keys/secret') return { status: 200, body: { key: 'dc_current_key_456' } }
+      if (url === '/api/v1/keys') return { status: 200, body: { has_key: true } }
+      return { status: 404, body: { error: 'x' } }
+    })
+
+    render(<KeysPage />)
+    const revealBtn = await screen.findByRole('button', { name: '查看 Key' })
+    await user.click(revealBtn)
+
+    expect(await screen.findByText('dc_current_key_456')).toBeInTheDocument()
+    expect(screen.getByText('当前 Key')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '复制 Key' })).toBeInTheDocument()
+    const revealCall = fetchMock.mock.calls.find(([u]) => u === '/api/v1/keys/secret')
+    expect(revealCall).toBeDefined()
+  })
+
+  it('旧版本 Key（无加密副本）查看时展示服务端 409 提示', async () => {
+    const user = userEvent.setup()
+    mockFetch((url) => {
+      if (url === '/api/v1/keys/secret')
+        return { status: 409, body: { error: '该 Key 生成于旧版本，无法回显；重置后即可随时查看' } }
+      if (url === '/api/v1/keys') return { status: 200, body: { has_key: true } }
+      return { status: 404, body: { error: 'x' } }
+    })
+
+    render(<KeysPage />)
+    const revealBtn = await screen.findByRole('button', { name: '查看 Key' })
+    await user.click(revealBtn)
+
+    expect(await screen.findByText(/生成于旧版本/)).toBeInTheDocument()
+    expect(screen.queryByText('dc_current_key_456')).not.toBeInTheDocument()
+  })
 })

@@ -24,6 +24,7 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("POST /api/v1/auth/change-password", middleware.RequireSession(deps)(http.HandlerFunc(s.changePassword)))
 	mux.Handle("GET /api/v1/auth/me", middleware.RequireSession(deps)(http.HandlerFunc(s.me)))
 	mux.Handle("GET /api/v1/keys", middleware.RequireSession(deps)(http.HandlerFunc(s.keyStatus)))
+	mux.Handle("GET /api/v1/keys/secret", middleware.RequireSession(deps)(http.HandlerFunc(s.revealKey)))
 	mux.Handle("POST /api/v1/keys", middleware.RequireSession(deps)(http.HandlerFunc(s.generateKey)))
 	mux.Handle("POST /api/v1/keys/reset", middleware.RequireSession(deps)(http.HandlerFunc(s.resetKey)))
 	mux.Handle("GET /api/v1/history", middleware.RequireAnyAuth(deps)(http.HandlerFunc(s.list)))

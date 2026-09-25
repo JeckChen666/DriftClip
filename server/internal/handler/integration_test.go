@@ -25,6 +25,7 @@ import (
 	"testing"
 	"time"
 
+	"driftclip/server/internal/auth"
 	"driftclip/server/internal/handler"
 	"driftclip/server/internal/middleware"
 	"driftclip/server/internal/store"
@@ -980,4 +981,77 @@ func TestPageOverflowRejected(t *testing.T) {
 
 func itoa(v int64) string {
 	return strconv.FormatInt(v, 10)
+}
+
+// Web 端重复查看 Key：生成后回显同一 Key；重置后回显新 Key；
+// 旧版本生成的 Key（无加密副本）回显 409。
+func TestKeyRevealSecret(t *testing.T) {
+	ts := newTestServer(t, testOpts{})
+	defer ts.close()
+
+	cookie := registerAndLogin(t, ts, "a@example.com")
+	session := func() map[string]string {
+		return map[string]string{
+			"Cookie":           "driftclip_session=" + cookie,
+			"X-Requested-With": "XMLHttpRequest",
+		}
+	}
+
+	// 无 Key 时回显 → 404
+	res := ts.do(t, http.MethodGet, "/api/v1/keys/secret", nil, session())
+	if res.StatusCode != http.StatusNotFound {
+		t.Fatalf("无 Key 回显应 404，实际 %d", res.StatusCode)
+	}
+	res.Body.Close()
+
+	// 生成 Key → 回显与生成响应一致
+	res = ts.do(t, http.MethodPost, "/api/v1/keys", nil, session())
+	var gen map[string]string
+	decode(t, res, &gen)
+	res = ts.do(t, http.MethodGet, "/api/v1/keys/secret", nil, session())
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("回显应 200，实际 %d", res.StatusCode)
+	}
+	var rev map[string]string
+	decode(t, res, &rev)
+	if rev["key"] != gen["key"] {
+		t.Fatalf("回显应与生成的 Key 一致，实际 %q", rev["key"])
+	}
+
+	// 重置 → 回显为新 Key，旧 Key 不再回显
+	res = ts.do(t, http.MethodPost, "/api/v1/keys/reset", nil, session())
+	var rst map[string]string
+	decode(t, res, &rst)
+	res = ts.do(t, http.MethodGet, "/api/v1/keys/secret", nil, session())
+	var rev2 map[string]string
+	decode(t, res, &rev2)
+	if rev2["key"] != rst["key"] {
+		t.Fatalf("重置后回显应为新 Key，实际 %q", rev2["key"])
+	}
+	if rev2["key"] == gen["key"] {
+		t.Fatal("重置后不应回显旧 Key")
+	}
+
+	// 模拟旧版本 Key（直接写入哈希、无密文）→ 回显 409
+	acc, err := ts.store.GetAccountByEmail(context.Background(), "a@example.com")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := ts.store.ResetKey(context.Background(), acc.ID, auth.HashKey("dc_legacy", ts.keyPepper), nil, nil); err != nil {
+		t.Fatal(err)
+	}
+	res = ts.do(t, http.MethodGet, "/api/v1/keys/secret", nil, session())
+	if res.StatusCode != http.StatusConflict {
+		t.Fatalf("旧版本 Key 回显应 409，实际 %d", res.StatusCode)
+	}
+	res.Body.Close()
+
+	// 旧版本 Key 仍可用于鉴权（哈希不变）
+	res = ts.do(t, http.MethodGet, "/api/v1/history", nil, map[string]string{
+		"Authorization": "Bearer dc_legacy",
+	})
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("旧版本 Key 应仍可鉴权，实际 %d", res.StatusCode)
+	}
+	res.Body.Close()
 }

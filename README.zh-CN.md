@@ -19,7 +19,7 @@ DriftClip 采集你在各设备上复制的文本，集中保存成一份可搜�
 | --- | --- |
 | ![Web 历史](docs/screenshots/web-history.png) | ![移动端](docs/screenshots/web-mobile.png) |
 
-Key 管理（完整 Key 仅展示一次）：
+Key 管理（完整 Key 可随时查看和复制）：
 
 ![Key 管理](docs/screenshots/web-keys.png)
 
@@ -56,7 +56,7 @@ docker run -d --name driftclip -p 127.0.0.1:8080:8080 -v driftclip-data:/data \
 ### 首次使用
 
 1. 打开 Web 端（本地即 `http://127.0.0.1:8080`），注册账户。
-2. 进入「Key 管理」生成 API Key——完整 Key 只展示一次，请妥善保存。
+2. 进入「Key 管理」生成 API Key——完整 Key 由服务端加密保存，可随时在「Key 管理」页查看和复制。
 3. 安装原生客户端，在引导/设置页填入服务地址与 Key。
 4. 在任意已连接设备上复制内容——所有端的历史里都能看到。
 

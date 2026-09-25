@@ -85,6 +85,8 @@ export const auth = {
 
 export const keys = {
   status: () => request<{ has_key: boolean }>('/api/v1/keys'),
+  // 服务端保存 AES-GCM 加密副本；旧版本生成的 Key 无副本时返回 409
+  reveal: () => request<{ key: string }>('/api/v1/keys/secret'),
   generate: () => request<{ key: string }>('/api/v1/keys', { method: 'POST' }),
   reset: () => request<{ key: string }>('/api/v1/keys/reset', { method: 'POST' }),
 }

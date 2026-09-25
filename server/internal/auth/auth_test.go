@@ -74,3 +74,45 @@ func TestSessionTokenHashing(t *testing.T) {
 		t.Fatal("两次生成的会话 token 不应相同")
 	}
 }
+
+func TestKeyEncryptDecryptRoundtrip(t *testing.T) {
+	key := "dc_0123456789abcdefABCDEF"
+	cipher, nonce, err := EncryptKey(key, "pepper-A")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(cipher), key) {
+		t.Fatal("密文不应包含明文 Key")
+	}
+	got, err := DecryptKey(cipher, nonce, "pepper-A")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != key {
+		t.Fatalf("解密应还原原文，实际 %q", got)
+	}
+}
+
+func TestKeyDecryptWrongPepperFails(t *testing.T) {
+	cipher, nonce, err := EncryptKey("dc_secret", "pepper-A")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := DecryptKey(cipher, nonce, "pepper-B"); err == nil {
+		t.Fatal("错误 pepper 应解密失败（GCM 认证）")
+	}
+}
+
+func TestKeyEncryptNonceUnique(t *testing.T) {
+	_, n1, err := EncryptKey("dc_same", "pepper")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, n2, err := EncryptKey("dc_same", "pepper")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(n1) == string(n2) {
+		t.Fatal("两次加密的 nonce 不应相同")
+	}
+}

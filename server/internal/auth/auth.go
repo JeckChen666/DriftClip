@@ -3,10 +3,14 @@
 // 安全约定：
 //   - 密码用 Argon2id 哈希保存，绝不存明文；
 //   - 会话 token 只存 SHA-256 哈希；
-//   - Key 只存 HMAC-SHA256(key_pepper, key) 哈希，比较用 constant-time。
+//   - Key 存 HMAC-SHA256(key_pepper, key) 哈希用于鉴权，比较用 constant-time；
+//     另存一份 AES-256-GCM 加密原文供 Web 端重复查看（加密密钥由 pepper
+//     域分离派生，数据库单独泄漏仍无法还原 Key）。
 package auth
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
@@ -107,7 +111,6 @@ func HashSessionToken(token string) string {
 }
 
 // GenerateKey 生成原生客户端访问 Key：dc_ 前缀 + 32 字节 CSPRNG（raw base64url）。
-// 完整 Key 只在生成/重置时返回一次，服务端只保存其哈希。
 func GenerateKey() (string, error) {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
@@ -124,4 +127,48 @@ func HashKey(key, pepper string) string {
 	mac := hmac.New(sha256.New, []byte(pepper))
 	mac.Write([]byte(key))
 	return hex.EncodeToString(mac.Sum(nil))
+}
+
+// keyEncryptionKey 由 pepper 域分离派生 Key 加密密钥（AES-256）。
+// 与 HMAC 鉴权用途隔离：同一 pepper 在两种算法下的输入不同。
+func keyEncryptionKey(pepper string) []byte {
+	sum := sha256.Sum256([]byte("driftclip:api-key-encryption\x00" + pepper))
+	return sum[:]
+}
+
+// EncryptKey 用 AES-256-GCM 加密 Key 原文（Web 端重复查看用），
+// 返回密文与随机 nonce。密钥由 pepper 派生，数据库单独泄漏无法还原。
+func EncryptKey(key, pepper string) (ciphertext, nonce []byte, err error) {
+	block, err := aes.NewCipher(keyEncryptionKey(pepper))
+	if err != nil {
+		return nil, nil, fmt.Errorf("初始化 AES: %w", err)
+	}
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, nil, fmt.Errorf("初始化 GCM: %w", err)
+	}
+	nonce = make([]byte, gcm.NonceSize())
+	if _, err = rand.Read(nonce); err != nil {
+		return nil, nil, fmt.Errorf("生成 GCM nonce: %w", err)
+	}
+	ciphertext = gcm.Seal(nil, nonce, []byte(key), nil)
+	return ciphertext, nonce, nil
+}
+
+// DecryptKey 解密 EncryptKey 保存的密文，还原 Key 原文。
+// pepper 不匹配或密文被篡改时返回错误（GCM 认证失败）。
+func DecryptKey(ciphertext, nonce []byte, pepper string) (string, error) {
+	block, err := aes.NewCipher(keyEncryptionKey(pepper))
+	if err != nil {
+		return "", fmt.Errorf("初始化 AES: %w", err)
+	}
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", fmt.Errorf("初始化 GCM: %w", err)
+	}
+	plain, err := gcm.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		return "", fmt.Errorf("解密 Key: %w", err)
+	}
+	return string(plain), nil
 }

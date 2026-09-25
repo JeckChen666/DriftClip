@@ -19,7 +19,7 @@ DriftClip captures the text you copy on any device and keeps a synced, searchabl
 | --- | --- |
 | ![Web history](docs/screenshots/web-history.png) | ![Mobile](docs/screenshots/web-mobile.png) |
 
-Key management (each key is shown only once):
+Key management (keys can be re-revealed and copied at any time):
 
 ![Key management](docs/screenshots/web-keys.png)
 
@@ -56,7 +56,7 @@ docker run -d --name driftclip -p 127.0.0.1:8080:8080 -v driftclip-data:/data \
 ### First run
 
 1. Open the web UI (e.g. `http://127.0.0.1:8080` locally) and register an account.
-2. Go to **Keys** and generate your API key — it is displayed exactly once, store it safely.
+2. Go to **Keys** and generate your API key — you can view and copy it again at any time on the **Keys** page (stored encrypted server-side).
 3. Install a native client, enter your server address and the key in the onboarding/settings screen.
 4. Copy something on any connected device — it appears in the history everywhere.
 

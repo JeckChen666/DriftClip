@@ -10,6 +10,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 
 	_ "modernc.org/sqlite"
@@ -66,9 +67,11 @@ CREATE INDEX IF NOT EXISTS idx_sessions_account ON sessions (account_id);
 
 -- 每账户只有一个有效 Key（account_id 主键）；key_hash 全局唯一。
 CREATE TABLE IF NOT EXISTS keys (
-  account_id  INTEGER PRIMARY KEY REFERENCES accounts(id),
-  key_hash    TEXT NOT NULL UNIQUE,            -- HMAC-SHA256(key_pepper, key)
-  created_at  TEXT NOT NULL
+  account_id     INTEGER PRIMARY KEY REFERENCES accounts(id),
+  key_hash       TEXT NOT NULL UNIQUE,         -- HMAC-SHA256(key_pepper, key)，鉴权用
+  key_encrypted  BLOB,                         -- AES-256-GCM(key) 密文，Web 回显用；旧版生成的 Key 为 NULL
+  key_nonce      BLOB,                         -- GCM nonce
+  created_at     TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS history (
@@ -89,7 +92,20 @@ CREATE TABLE IF NOT EXISTS history (
 CREATE INDEX IF NOT EXISTS idx_history_account_time
   ON history (account_id, received_at DESC, id DESC);
 `)
-	return err
+	if err != nil {
+		return err
+	}
+	// 老库补列（SQLite 无 ADD COLUMN IF NOT EXISTS；新库已含列，重复执行报
+	// duplicate column name，幂等忽略）。Key 加密副本用于 Web 端重复查看。
+	for _, ddl := range []string{
+		`ALTER TABLE keys ADD COLUMN key_encrypted BLOB`,
+		`ALTER TABLE keys ADD COLUMN key_nonce BLOB`,
+	} {
+		if _, err := s.db.Exec(ddl); err != nil && !strings.Contains(err.Error(), "duplicate column name") {
+			return fmt.Errorf("补齐 keys 表列: %w", err)
+		}
+	}
+	return nil
 }
 
 // nowUTC 返回当前 UTC 时间的 RFC3339 字符串（与存储格式一致）。

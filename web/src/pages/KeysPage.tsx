@@ -1,9 +1,10 @@
 // Key 管理页：
 //   - 无 Key 时提供「生成初始 Key」；
-//   - 有 Key 时提供「重置 Key」，点击后 5 秒倒计时确认（Spec §2.2）；
-//   - 完整 Key 只在生成/重置完成时展示一次，不缓存到本地存储。
+//   - 有 Key 时提供「查看 Key」（随时查看/复制，服务端存加密副本）与
+//     「重置 Key」，重置点击后 5 秒倒计时确认（Spec §2.2）；
+//   - 生成/重置完成时展示完整 Key。
 import { useEffect, useState } from 'react'
-import { AlertCircle, Copy, KeyRound, ShieldCheck } from 'lucide-react'
+import { AlertCircle, Copy, Eye, KeyRound, ShieldCheck } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -16,8 +17,10 @@ export function KeysPage() {
   const { toast } = useToast()
   const [hasKey, setHasKey] = useState<boolean | null>(null)
   const [shownKey, setShownKey] = useState('')
+  const [shownSource, setShownSource] = useState<'new' | 'revealed'>('new')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [revealing, setRevealing] = useState(false)
   const [confirming, setConfirming] = useState(false)
   const [countdown, setCountdown] = useState(0)
 
@@ -44,11 +47,28 @@ export function KeysPage() {
     try {
       const r = await keysApi.generate()
       setShownKey(r.key)
+      setShownSource('new')
       setHasKey(true)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '生成 Key 失败')
     } finally {
       setBusy(false)
+    }
+  }
+
+  // 查看当前 Key：服务端解密加密副本后返回；旧版本 Key 无副本时返回 409。
+  async function reveal() {
+    setRevealing(true)
+    setError('')
+    setShownKey('')
+    try {
+      const r = await keysApi.reveal()
+      setShownKey(r.key)
+      setShownSource('revealed')
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : '查看 Key 失败')
+    } finally {
+      setRevealing(false)
     }
   }
 
@@ -59,6 +79,7 @@ export function KeysPage() {
     try {
       const r = await keysApi.reset()
       setShownKey(r.key)
+      setShownSource('new')
       setHasKey(true)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '重置 Key 失败')
@@ -103,8 +124,7 @@ export function KeysPage() {
           Key 管理
         </h1>
         <p className="mt-1.5 text-body-sm text-muted-foreground">
-          原生客户端使用 Key 同步历史。完整 Key 只在生成或重置时展示一次，请立即保存；服务端不保存完整
-          Key，遗失后只能重置。
+          原生客户端使用 Key 同步历史。完整 Key 由服务端加密保存，可随时在本页查看与复制；请仍妥善保管，避免泄露给他人。
         </p>
       </div>
 
@@ -139,6 +159,10 @@ export function KeysPage() {
         <CardContent>
           {hasKey ? (
             <div className="flex items-center gap-2">
+              <Button onClick={() => void reveal()} disabled={revealing || busy}>
+                <Eye className="size-icon-sm" />
+                {revealing ? '加载中…' : '查看 Key'}
+              </Button>
               {confirming ? (
                 countdown > 0 ? (
                   <Button disabled variant="danger">
@@ -166,9 +190,11 @@ export function KeysPage() {
       {shownKey && (
         <Card>
           <CardHeader>
-            <CardTitle>新的 Key</CardTitle>
+            <CardTitle>{shownSource === 'revealed' ? '当前 Key' : '新的 Key'}</CardTitle>
             <CardDescription>
-              请立即复制并妥善保存以下完整 Key（只展示这一次）。服务端不保存完整 Key，遗失只能重置。
+              {shownSource === 'revealed'
+                ? '以下是当前生效的完整 Key，可随时回到本页查看或复制。'
+                : '完整 Key 由服务端加密保存，可随时在本页查看与复制。'}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
