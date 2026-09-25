@@ -1,9 +1,15 @@
-import 'package:flutter/material.dart';
+import 'dart:io' show Platform;
 
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+
+import '../services/connect_config.dart';
 import '../services/settings_store.dart';
 import '../services/upload_coordinator.dart';
 
 /// Key 配置页：设置服务地址与访问 Key。
+/// 支持三种配置方式：手动填写、剪贴板导入、移动端扫码（ROADMAP P2.4）。
 /// 保存前先实际请求服务端验证连通性，成功才持久化并提示；失败就地显示原因。
 /// 保存新 Key 时清除本地去重摘要（Spec §4.2：更换 Key 时清除摘要）。
 class KeyConfigScreen extends StatefulWidget {
@@ -29,6 +35,9 @@ class _KeyConfigScreenState extends State<KeyConfigScreen> {
   bool _checking = false;
   String? _error;
 
+  // 扫码仅在有摄像头的移动端提供。
+  bool get _scanSupported => Platform.isAndroid || Platform.isIOS;
+
   @override
   void initState() {
     super.initState();
@@ -40,6 +49,40 @@ class _KeyConfigScreenState extends State<KeyConfigScreen> {
     _urlController.dispose();
     _keyController.dispose();
     super.dispose();
+  }
+
+  /// 把解析出的配置填入表单（不自动保存，仍走保存前连通性校验）。
+  void _applyConfig(ConnectConfig cfg) {
+    setState(() {
+      _urlController.text = cfg.server;
+      _keyController.text = cfg.key;
+      _error = null;
+    });
+  }
+
+  Future<void> _importFromClipboard() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    if (!mounted) return;
+    final cfg = ConnectConfig.tryParse(data?.text ?? '');
+    if (cfg == null) {
+      setState(() {
+        _error =
+            '剪贴板中没有有效的 DriftClip 配置，请先在 Web 端「Key 管理」页复制完整配置';
+      });
+      return;
+    }
+    _applyConfig(cfg);
+  }
+
+  Future<void> _scanQr() async {
+    final cfg = await Navigator.of(context).push<ConnectConfig>(
+      MaterialPageRoute<ConnectConfig>(
+        fullscreenDialog: true,
+        builder: (_) => const _ScanScreen(),
+      ),
+    );
+    if (cfg == null || !mounted) return;
+    _applyConfig(cfg);
   }
 
   Future<void> _save() async {
@@ -119,8 +162,8 @@ class _KeyConfigScreenState extends State<KeyConfigScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    '在 Web 端「Key 管理」页生成 Key 并填入此处，'
-                    '服务地址默认本机开发地址。',
+                    '在 Web 端「Key 管理」页复制完整配置后点下方按钮导入，'
+                    '或手动填写服务地址与 Key。',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       height: 1.5,
@@ -136,6 +179,34 @@ class _KeyConfigScreenState extends State<KeyConfigScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: _importFromClipboard,
+                                  icon: const Icon(
+                                    Icons.content_paste_rounded,
+                                    size: 15,
+                                  ),
+                                  label: const Text('从剪贴板导入'),
+                                ),
+                              ),
+                              if (_scanSupported) ...[
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: _scanQr,
+                                    icon: const Icon(
+                                      Icons.qr_code_scanner_rounded,
+                                      size: 15,
+                                    ),
+                                    label: const Text('扫码导入'),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          const SizedBox(height: 12),
                           TextField(
                             controller: _urlController,
                             decoration: const InputDecoration(
@@ -201,6 +272,49 @@ class _KeyConfigScreenState extends State<KeyConfigScreen> {
                   ),
                 ],
               ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 扫码导入：识别 Web 端 Key 管理页二维码中的连接配置。
+class _ScanScreen extends StatefulWidget {
+  const _ScanScreen();
+
+  @override
+  State<_ScanScreen> createState() => _ScanScreenState();
+}
+
+class _ScanScreenState extends State<_ScanScreen> {
+  bool _done = false;
+
+  void _handleDetect(BarcodeCapture capture) {
+    if (_done || !mounted) return;
+    for (final barcode in capture.barcodes) {
+      final cfg = ConnectConfig.tryParse(barcode.rawValue ?? '');
+      if (cfg != null) {
+        _done = true;
+        Navigator.of(context).pop(cfg);
+        return;
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('扫描连接二维码')),
+      body: MobileScanner(
+        onDetect: _handleDetect,
+        errorBuilder: (context, error) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              '无法启动相机（$error）\n请检查相机权限，或改用「从剪贴板导入」',
+              textAlign: TextAlign.center,
             ),
           ),
         ),
