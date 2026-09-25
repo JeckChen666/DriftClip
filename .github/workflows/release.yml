@@ -142,7 +142,7 @@ jobs:
           name: dist-client-${{ matrix.platform }}
           path: DriftClip-${{ matrix.platform }}.*
 
-  # Android APK（debug 签名，可直接安装）。
+  # Android APK：注入 keystore secrets 时正式签名，否则回退 debug 签名（可直接安装）。
   android:
     runs-on: ubuntu-latest
     steps:
@@ -156,6 +156,25 @@ jobs:
           flutter-version: 3.44.8
           channel: stable
           cache: true
+      # 签名材料由仓库 secrets 提供（生成方式见 DEVELOPMENT.md「Android 签名」）。
+      - name: Prepare Android release keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$GITHUB_WORKSPACE/release.keystore.jks"
+            {
+              echo "DRIFTCLIP_ANDROID_KEYSTORE_PATH=$GITHUB_WORKSPACE/release.keystore.jks"
+              echo "DRIFTCLIP_ANDROID_KEYSTORE_PASSWORD=$ANDROID_KEYSTORE_PASSWORD"
+              echo "DRIFTCLIP_ANDROID_KEY_ALIAS=$ANDROID_KEY_ALIAS"
+              echo "DRIFTCLIP_ANDROID_KEY_PASSWORD=$ANDROID_KEY_PASSWORD"
+            } >> "$GITHUB_ENV"
+          else
+            echo "⚠️ 未配置 ANDROID_KEYSTORE_BASE64 等 secrets，APK 回退 debug 签名" >> "$GITHUB_STEP_SUMMARY"
+          fi
       - run: flutter pub get
         working-directory: client
       - run: flutter build apk --release

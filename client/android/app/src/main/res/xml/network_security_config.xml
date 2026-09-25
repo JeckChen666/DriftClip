@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 自托管服务地址不可预知（常见 http://内网IP:8080），允许明文 HTTP，
+     否则 Android 9+ 会直接拦截且客户端只报笼统的连接失败。
+     生产环境建议服务端配置 HTTPS（见 README 安全说明）。 -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

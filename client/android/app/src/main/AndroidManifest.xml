@@ -1,8 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 与服务端通信必需。此前只在 debug/profile 清单声明，release APK 无法联网。 -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- 移动端「扫码导入」读取连接二维码（ROADMAP P2.4）。 -->
+    <uses-permission android:name="android.permission.CAMERA"/>
     <application
-        android:label="driftclip_client"
+        android:label="DriftClip"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:networkSecurityConfig="@xml/network_security_config">
         <activity
             android:name=".MainActivity"
             android:exported="true"

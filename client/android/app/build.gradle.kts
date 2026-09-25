@@ -1,8 +1,27 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+// 发布签名（ROADMAP P0.3）：优先环境变量（CI 注入 secrets），其次 android/key.properties
+// （本地，已被 .gitignore 忽略）。两者都缺失时回退 debug 签名，保证本地 `flutter run --release` 可用。
+val keystoreProps = Properties().apply {
+    val f = rootProject.file("key.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+val ksStoreFile = System.getenv("DRIFTCLIP_ANDROID_KEYSTORE_PATH")
+    ?: keystoreProps.getProperty("storeFile")
+val ksStorePassword = System.getenv("DRIFTCLIP_ANDROID_KEYSTORE_PASSWORD")
+    ?: keystoreProps.getProperty("storePassword")
+val ksKeyAlias = System.getenv("DRIFTCLIP_ANDROID_KEY_ALIAS")
+    ?: keystoreProps.getProperty("keyAlias")
+val ksKeyPassword = System.getenv("DRIFTCLIP_ANDROID_KEY_PASSWORD")
+    ?: keystoreProps.getProperty("keyPassword")
+val releaseSigningAvailable = listOf(ksStoreFile, ksStorePassword, ksKeyAlias, ksKeyPassword)
+    .all { !it.isNullOrBlank() } && ksStoreFile?.let { file(it).exists() } == true
 
 android {
     namespace = "com.driftclip.driftclip_client"
@@ -25,11 +44,26 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (releaseSigningAvailable) {
+            create("release") {
+                storeFile = file(ksStoreFile!!)
+                storePassword = ksStorePassword
+                keyAlias = ksKeyAlias
+                keyPassword = ksKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (releaseSigningAvailable) {
+                signingConfigs.getByName("release")
+            } else {
+                // 未提供正式签名时回退 debug（仅供本地验证；发布必须配置签名，
+                // 生成方式见 DEVELOPMENT.md「Android 签名」一节）。
+                signingConfigs.getByName("debug")
+            }
         }
     }
 }
