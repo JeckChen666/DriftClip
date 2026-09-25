@@ -173,7 +173,10 @@ class ApiClient {
       final res = await _client
           .get(uri, headers: {'Authorization': 'Bearer $key'})
           .timeout(const Duration(seconds: 8));
-      if (res.statusCode >= 200 && res.statusCode < 300) return null;
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        await _fetchMeta(baseUrl);
+        return null;
+      }
       if (res.statusCode == 401 || res.statusCode == 403) {
         return '连接成功但 Key 无效（HTTP ${res.statusCode}），请检查 Key';
       }
@@ -189,6 +192,30 @@ class ApiClient {
       return '连接超时，请检查服务地址与端口';
     } catch (_) {
       return '无法连接服务器，请检查服务地址与网络';
+    }
+  }
+
+  /// 连接成功后读取 GET /api/v1/meta（公开端点）：记录服务端版本与
+  /// 单条正文字节上限，供上传预校验与排查使用（ROADMAP P3.3）。
+  /// meta 属增强信息，读取失败不影响校验结果。
+  Future<void> _fetchMeta(String baseUrl) async {
+    try {
+      final uri = Uri.parse('$baseUrl/api/v1/meta');
+      final res = await _client
+          .get(uri, headers: {'Authorization': 'Bearer ${settings.apiKey}'})
+          .timeout(const Duration(seconds: 8));
+      if (res.statusCode != 200) return;
+      final meta = jsonDecode(res.body) as Map<String, dynamic>;
+      final version = meta['version'];
+      if (version is String && version.isNotEmpty) {
+        await settings.setServerVersion(version);
+      }
+      final maxBytes = meta['max_clipboard_text_bytes'];
+      if (maxBytes is num && maxBytes > 0) {
+        await settings.setMaxClipBytes(maxBytes.toInt());
+      }
+    } catch (_) {
+      // 忽略：meta 缺失或格式变化不影响连接
     }
   }
 }
