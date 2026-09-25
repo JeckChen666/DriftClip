@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../services/clipboard_monitor.dart';
@@ -39,6 +41,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } else {
       widget.monitor.stop();
     }
+    // 同步托盘菜单文案（ROADMAP P1.5）
+    unawaited(widget.desktop.setListening(v));
   }
 
   void _toggleAutoStart(bool v) {
@@ -96,21 +100,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
               const SizedBox(height: 24),
-              const _SectionHeader('启动'),
-              _SectionCard(
-                children: [
-                  _SettingRow(
-                    icon: Icons.power_settings_new_rounded,
-                    title: '登录后自动启动',
-                    subtitle: '桌面端，默认关闭',
-                    trailing: Switch.adaptive(
-                      value: _autoStart,
-                      onChanged: _toggleAutoStart,
+              // 仅桌面端展示（macOS 走原生 SMAppService 通道，ROADMAP P1.3）；
+              // 移动端无自启动概念，隐藏。
+              if (DesktopIntegration.supportsAutoStart) ...[
+                const _SectionHeader('启动'),
+                _SectionCard(
+                  children: [
+                    _SettingRow(
+                      icon: Icons.power_settings_new_rounded,
+                      title: '登录后自动启动',
+                      subtitle: '桌面端，默认关闭',
+                      trailing: Switch.adaptive(
+                        value: _autoStart,
+                        onChanged: _toggleAutoStart,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
+                  ],
+                ),
+                const SizedBox(height: 24),
+              ],
               const _SectionHeader('连接'),
               _SectionCard(
                 children: [

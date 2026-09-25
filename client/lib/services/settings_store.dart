@@ -13,6 +13,8 @@ class SettingsStore {
   static const _kListen = 'listen_enabled';
   static const _kAutoStart = 'auto_start';
   static const _kInstallId = 'installation_id';
+  static const _kServerMaxClipBytes = 'server_max_clip_bytes';
+  static const _kServerVersion = 'server_version';
 
   SharedPreferences? _prefs;
 
@@ -63,6 +65,16 @@ class SettingsStore {
   /// 「登录后自动启动」默认关闭（Spec §5.3），桌面端生效。
   bool get autoStart => _p.getBool(_kAutoStart) ?? false;
   Future<void> setAutoStart(bool v) => _p.setBool(_kAutoStart, v);
+
+  // —— 服务端 meta（连接校验成功时写入，ROADMAP P3.3） ————————————
+
+  /// 服务端上报的单条正文字节上限；0 表示未知（用客户端默认值预校验）。
+  int get maxClipBytes => _p.getInt(_kServerMaxClipBytes) ?? 0;
+  Future<void> setMaxClipBytes(int v) => _p.setInt(_kServerMaxClipBytes, v);
+
+  /// 服务端版本号，用于排查与后续兼容性提示。
+  String? get serverVersion => _p.getString(_kServerVersion);
+  Future<void> setServerVersion(String v) => _p.setString(_kServerVersion, v);
 
   String installationId() {
     var id = _p.getString(_kInstallId);

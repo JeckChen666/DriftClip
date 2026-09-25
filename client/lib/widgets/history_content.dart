@@ -325,7 +325,8 @@ class HistoryContentState extends State<HistoryContent> {
     if (text == null || !mounted) return;
     final ok = await widget.uploader.uploadText(text, source: 'manual');
     if (!mounted) return;
-    _snack(ok ? '已上传' : '上传失败或内容为空');
+    // 超限等明确拒绝时给出具体原因（ROADMAP P0.6），其余维持原有文案。
+    _snack(ok ? '已上传' : (widget.uploader.rejected.value ?? '上传失败或内容为空'));
     await _load(); // 本设备成功上传后更新当前列表（Spec §5.1）
   }
 
@@ -376,8 +377,19 @@ class HistoryContentState extends State<HistoryContent> {
         ValueListenableBuilder<bool>(
           valueListenable: widget.uploader.needsNewKey,
           builder: (context, needsNewKey, _) => needsNewKey
-              ? _NeedsKeyBanner(
+              ? _NoticeBanner(
+                  message: 'Key 无效或已被重置，请在设置中更新',
                   onDismiss: () => widget.uploader.needsNewKey.value = false,
+                )
+              : const SizedBox.shrink(),
+        ),
+        // 413/预校验横幅：内容超限被拒（ROADMAP P0.6）
+        ValueListenableBuilder<String?>(
+          valueListenable: widget.uploader.rejected,
+          builder: (context, message, _) => message != null
+              ? _NoticeBanner(
+                  message: message,
+                  onDismiss: () => widget.uploader.rejected.value = null,
                 )
               : const SizedBox.shrink(),
         ),
@@ -412,6 +424,31 @@ class HistoryContentState extends State<HistoryContent> {
                   : '已载入 ${_records.length} 条记录 · 随时找回复制过的内容',
               style: Theme.of(context).textTheme.bodySmall,
             ),
+            // 同步状态：待补传条数 / 最近成功时间（ROADMAP P1.5）
+            ValueListenableBuilder<SyncStatus>(
+              valueListenable: widget.uploader.syncStatus,
+              builder: (context, status, _) {
+                final pending = status.pendingCount;
+                final last = status.lastSyncAt;
+                if (pending == 0 && last == null) {
+                  return const SizedBox.shrink();
+                }
+                final text = pending > 0
+                    ? '待同步 $pending 条，网络恢复后自动补传'
+                    : '上次同步：${TimeFormat.relative(last?.toIso8601String())}';
+                return Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    text,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: pending > 0
+                          ? Theme.of(context).colorScheme.tertiary
+                          : null,
+                    ),
+                  ),
+                );
+              },
+            ),
             const SizedBox(height: 20),
           ],
           if (!widget.compact) ...[
@@ -422,12 +459,18 @@ class HistoryContentState extends State<HistoryContent> {
                   onTap: _openSettings,
                 ),
                 const Spacer(),
-                Text(
-                  _query.trim().isNotEmpty
-                      ? '匹配 ${_filtered.length} / 共 ${_records.length} 条'
-                      : '共 ${_records.length} 条',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                // 计数合并同步状态：有待补传时在移动端同样可见（ROADMAP P1.5）
+                ValueListenableBuilder<SyncStatus>(
+                  valueListenable: widget.uploader.syncStatus,
+                  builder: (context, status, _) => Text(
+                    status.pendingCount > 0
+                        ? '共 ${_records.length} 条 · 待同步 ${status.pendingCount} 条'
+                        : _query.trim().isNotEmpty
+                        ? '匹配 ${_filtered.length} / 共 ${_records.length} 条'
+                        : '共 ${_records.length} 条',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               ],
@@ -1019,11 +1062,12 @@ class HistoryContentState extends State<HistoryContent> {
   }
 }
 
-/// 401 需要更新 Key 的横幅。
-class _NeedsKeyBanner extends StatelessWidget {
+/// 顶部异常横幅：Key 失效（401）与内容超限（413/预校验）共用。
+class _NoticeBanner extends StatelessWidget {
+  final String message;
   final VoidCallback onDismiss;
 
-  const _NeedsKeyBanner({required this.onDismiss});
+  const _NoticeBanner({required this.message, required this.onDismiss});
 
   @override
   Widget build(BuildContext context) {
@@ -1045,7 +1089,7 @@ class _NeedsKeyBanner extends StatelessWidget {
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              'Key 无效或已被重置，请在设置中更新',
+              message,
               style: TextStyle(
                 fontSize: 12,
                 color: scheme.onErrorContainer,
