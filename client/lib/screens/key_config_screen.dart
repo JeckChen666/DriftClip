@@ -57,7 +57,10 @@ class _KeyConfigScreenState extends State<KeyConfigScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    // 作为路由重新打开（设置页「重新配置」）时带返回栏；首次启动作为根页面时不带。
+    final canPop = Navigator.of(context).canPop();
     return Scaffold(
+      appBar: canPop ? AppBar(title: const Text('重新配置')) : null,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(

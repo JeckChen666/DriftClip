@@ -86,6 +86,7 @@ class _DesktopShellState extends State<DesktopShell> {
           settings: widget.settings,
           monitor: widget.monitor,
           desktop: widget.desktop,
+          uploader: widget.uploader,
         ),
       ),
     );

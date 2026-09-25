@@ -36,7 +36,17 @@ class SettingsStore {
         'DRIFTCLIP_API_BASE',
         defaultValue: 'http://127.0.0.1:8080',
       );
-  Future<void> setApiBaseUrl(String v) => _p.setString(_kApiBaseUrl, v);
+  /// 归一化：去首尾空白与末尾斜杠，避免与 API 路径拼接出现 `//`。
+  static String _normalizeBaseUrl(String v) {
+    var url = v.trim();
+    while (url.length > 1 && url.endsWith('/')) {
+      url = url.substring(0, url.length - 1);
+    }
+    return url;
+  }
+
+  Future<void> setApiBaseUrl(String v) =>
+      _p.setString(_kApiBaseUrl, _normalizeBaseUrl(v));
 
   String? get apiKey => _p.getString(_kApiKey);
   Future<void> setApiKey(String? v) {

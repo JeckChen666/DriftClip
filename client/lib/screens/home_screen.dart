@@ -45,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
           settings: widget.settings,
           monitor: widget.monitor,
           desktop: widget.desktop,
+          uploader: widget.uploader,
         ),
       ),
     );
