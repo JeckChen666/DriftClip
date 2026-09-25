@@ -62,7 +62,7 @@ jobs:
           else
             tar czf "$name.tar.gz" driftclip-server* web config.example.yaml
           fi
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist-server-${{ matrix.goos }}-${{ matrix.goarch }}
           path: /tmp/out/driftclip-server-*.*
@@ -137,7 +137,7 @@ jobs:
       - name: Package (Linux)
         if: runner.os == 'Linux'
         run: tar czf DriftClip-${{ matrix.platform }}.tar.gz -C client/build/linux/x64/release/bundle .
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist-client-${{ matrix.platform }}
           path: DriftClip-${{ matrix.platform }}.*
@@ -179,7 +179,7 @@ jobs:
         working-directory: client
       - run: flutter build apk --release
         working-directory: client
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist-client-android
           path: client/build/app/outputs/flutter-apk/app-release.apk
