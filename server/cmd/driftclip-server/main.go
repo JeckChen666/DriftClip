@@ -15,6 +15,7 @@ import (
 
 	"driftclip/server/internal/config"
 	"driftclip/server/internal/handler"
+	"driftclip/server/internal/middleware"
 	"driftclip/server/internal/store"
 )
 
@@ -68,6 +69,17 @@ func main() {
 		TrustedNets:           cfg.TrustedNets,
 		SecureCookies:         cfg.Server.RequireHTTPS,
 		RequireHTTPS:          cfg.Server.RequireHTTPS,
+	}
+	// 内存限流（ROADMAP P3.1）：关闭时字段保持 nil，中间件直接放行。
+	if cfg.RateLimit.Enabled {
+		srv.AuthLimiter = middleware.NewRateLimiter(
+			cfg.RateLimit.AuthLimit,
+			time.Duration(cfg.RateLimit.AuthWindowSeconds)*time.Second,
+		)
+		srv.UploadLimiter = middleware.NewRateLimiter(
+			cfg.RateLimit.UploadLimit,
+			time.Duration(cfg.RateLimit.UploadWindowSeconds)*time.Second,
+		)
 	}
 
 	// 路由装配：/api 走 API，其余托管 React 静态产物（web/dist，SPA fallback）。

@@ -21,6 +21,7 @@ type Config struct {
 	Registration RegistrationConfig `yaml:"registration"`
 	History      HistoryConfig      `yaml:"history"`
 	Security     SecurityConfig     `yaml:"security"`
+	RateLimit    RateLimitConfig    `yaml:"rate_limit"`
 	Database     DatabaseConfig     `yaml:"database"`
 	Web          WebConfig          `yaml:"web"`
 
@@ -51,6 +52,16 @@ type SecurityConfig struct {
 	SessionDurationDays int    `yaml:"session_duration_days"`
 	SessionSecret       string `yaml:"session_secret"`
 	KeyPepper           string `yaml:"key_pepper"`
+}
+
+// RateLimitConfig 内存滑动窗口限流（ROADMAP P3.1）。
+// Auth 保护公开的注册/登录（按来源 IP），Upload 保护上传（按账户）。
+type RateLimitConfig struct {
+	Enabled             bool `yaml:"enabled"`
+	AuthLimit           int  `yaml:"auth_limit"`
+	AuthWindowSeconds   int  `yaml:"auth_window_seconds"`
+	UploadLimit         int  `yaml:"upload_limit"`
+	UploadWindowSeconds int  `yaml:"upload_window_seconds"`
 }
 
 type DatabaseConfig struct {
@@ -114,13 +125,22 @@ func defaults() *Config {
 		},
 		Registration: RegistrationConfig{Enabled: true},
 		History: HistoryConfig{
-			MaxHistoryRecords:     100,
+			// 默认从 100 提升到 1000（ROADMAP P3.2）："never lose a link"
+			// 的产品承诺与 100 条滚动保留矛盾，SQLite 单机完全承载得起。
+			MaxHistoryRecords:     1000,
 			MaxClipboardTextBytes: 102400,
 		},
 		Security: SecurityConfig{
 			SessionDurationDays: 30,
 			SessionSecret:       "replace-with-a-long-random-secret",
 			KeyPepper:           "replace-with-a-separate-long-random-secret",
+		},
+		RateLimit: RateLimitConfig{
+			Enabled:             true,
+			AuthLimit:           10,
+			AuthWindowSeconds:   60,
+			UploadLimit:         120,
+			UploadWindowSeconds: 60,
 		},
 		Database: DatabaseConfig{Path: "driftclip.sqlite"},
 		Web:      WebConfig{StaticDir: "web/dist"},
@@ -159,6 +179,21 @@ func applyEnv(c *Config) {
 	if v := os.Getenv(envPrefix + "SESSION_DURATION_DAYS"); v != "" {
 		fmt.Sscanf(v, "%d", &c.Security.SessionDurationDays)
 	}
+	if v := os.Getenv(envPrefix + "RATE_LIMIT_ENABLED"); v != "" {
+		c.RateLimit.Enabled = v == "true" || v == "1"
+	}
+	if v := os.Getenv(envPrefix + "RATE_LIMIT_AUTH_LIMIT"); v != "" {
+		fmt.Sscanf(v, "%d", &c.RateLimit.AuthLimit)
+	}
+	if v := os.Getenv(envPrefix + "RATE_LIMIT_AUTH_WINDOW_SECONDS"); v != "" {
+		fmt.Sscanf(v, "%d", &c.RateLimit.AuthWindowSeconds)
+	}
+	if v := os.Getenv(envPrefix + "RATE_LIMIT_UPLOAD_LIMIT"); v != "" {
+		fmt.Sscanf(v, "%d", &c.RateLimit.UploadLimit)
+	}
+	if v := os.Getenv(envPrefix + "RATE_LIMIT_UPLOAD_WINDOW_SECONDS"); v != "" {
+		fmt.Sscanf(v, "%d", &c.RateLimit.UploadWindowSeconds)
+	}
 	if v := os.Getenv(envPrefix + "SESSION_SECRET"); v != "" {
 		c.Security.SessionSecret = v
 	}
@@ -182,6 +217,14 @@ func (c *Config) validate() error {
 	}
 	if c.Security.SessionDurationDays < 1 {
 		return fmt.Errorf("security.session_duration_days 必须 ≥ 1")
+	}
+	if c.RateLimit.Enabled {
+		if c.RateLimit.AuthLimit < 1 || c.RateLimit.UploadLimit < 1 {
+			return fmt.Errorf("rate_limit.auth_limit / upload_limit 必须 ≥ 1")
+		}
+		if c.RateLimit.AuthWindowSeconds < 1 || c.RateLimit.UploadWindowSeconds < 1 {
+			return fmt.Errorf("rate_limit.auth_window_seconds / upload_window_seconds 必须 ≥ 1")
+		}
 	}
 	if c.Security.SessionSecret == "" {
 		return fmt.Errorf("security.session_secret 不能为空")

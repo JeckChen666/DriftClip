@@ -10,7 +10,7 @@ registration:
   enabled: true
 
 history:
-  max_history_records: 100
+  max_history_records: 1000 # ROADMAP P3.2：默认从 100 提升，可按需调低
   max_clipboard_text_bytes: 102400
 
 security:
@@ -18,6 +18,14 @@ security:
   # 以下两个值必须替换为强随机串；只能由部署者安全保存，禁止提交到代码库或打印到日志
   session_secret: "replace-with-a-long-random-secret"
   key_pepper: "replace-with-a-separate-long-random-secret"
+
+# 内存滑动窗口限流（ROADMAP P3.1）：注册/登录按来源 IP，上传按账户。
+rate_limit:
+  enabled: true
+  auth_limit: 10
+  auth_window_seconds: 60
+  upload_limit: 120
+  upload_window_seconds: 60
 
 database:
   path: "/data/driftclip.sqlite"

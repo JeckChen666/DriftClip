@@ -43,6 +43,8 @@ type testOpts struct {
 	requireHTTPS   bool
 	trustedProxies []string
 	location       string // 业务时区名称，默认 UTC
+	authLimit      int    // >0 时启用注册/登录 IP 限流（ROADMAP P3.1）
+	uploadLimit    int    // >0 时启用上传账户限流
 }
 
 func newTestServer(t *testing.T, opts testOpts) *testServer {
@@ -79,6 +81,12 @@ func newTestServer(t *testing.T, opts testOpts) *testServer {
 		TrustedNets:           trusted,
 		RequireHTTPS:          opts.requireHTTPS,
 		SecureCookies:         opts.requireHTTPS,
+	}
+	if opts.authLimit > 0 {
+		s.AuthLimiter = middleware.NewRateLimiter(opts.authLimit, time.Minute)
+	}
+	if opts.uploadLimit > 0 {
+		s.UploadLimiter = middleware.NewRateLimiter(opts.uploadLimit, time.Minute)
 	}
 	return &testServer{h: s.Routes(), store: st, closeFn: func() { st.Close() }, keyPepper: pepper}
 }

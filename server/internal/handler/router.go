@@ -18,8 +18,10 @@ func (s *Server) Routes() http.Handler {
 	deps := middleware.Deps{Store: s.Store, KeyPepper: s.KeyPepper}
 
 	mux := http.NewServeMux()
-	mux.Handle("POST /api/v1/auth/register", http.HandlerFunc(s.register))
-	mux.Handle("POST /api/v1/auth/login", http.HandlerFunc(s.login))
+	mux.Handle("GET /api/v1/meta", http.HandlerFunc(s.meta))
+	// 注册/登录按来源 IP 限流防爆破（ROADMAP P3.1）。
+	mux.Handle("POST /api/v1/auth/register", middleware.RateLimit(s.AuthLimiter, s.clientIP, http.HandlerFunc(s.register)))
+	mux.Handle("POST /api/v1/auth/login", middleware.RateLimit(s.AuthLimiter, s.clientIP, http.HandlerFunc(s.login)))
 	mux.Handle("POST /api/v1/auth/logout", middleware.RequireSession(deps)(http.HandlerFunc(s.logout)))
 	mux.Handle("POST /api/v1/auth/change-password", middleware.RequireSession(deps)(http.HandlerFunc(s.changePassword)))
 	mux.Handle("GET /api/v1/auth/me", middleware.RequireSession(deps)(http.HandlerFunc(s.me)))
@@ -29,7 +31,9 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("POST /api/v1/keys/reset", middleware.RequireSession(deps)(http.HandlerFunc(s.resetKey)))
 	mux.Handle("GET /api/v1/history", middleware.RequireAnyAuth(deps)(http.HandlerFunc(s.list)))
 	mux.Handle("GET /api/v1/history/{id}", middleware.RequireAnyAuth(deps)(http.HandlerFunc(s.get)))
-	mux.Handle("POST /api/v1/history", middleware.RequireKey(deps)(http.HandlerFunc(s.upload)))
+	// 上传按账户限流防刷：挂在鉴权之后，可从上下文取 account_id。
+	mux.Handle("POST /api/v1/history", middleware.RequireKey(deps)(
+		middleware.RateLimit(s.UploadLimiter, s.uploadRateKey, http.HandlerFunc(s.upload))))
 	mux.Handle("DELETE /api/v1/history/{id}", middleware.RequireAnyAuth(deps)(http.HandlerFunc(s.delete)))
 	mux.Handle("POST /api/v1/history/batch-delete", middleware.RequireAnyAuth(deps)(http.HandlerFunc(s.batchDelete)))
 	mux.Handle("POST /api/v1/history/clear", middleware.RequireAnyAuth(deps)(http.HandlerFunc(s.clear)))

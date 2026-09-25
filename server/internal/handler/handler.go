@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"driftclip/server/internal/middleware"
 	"driftclip/server/internal/store"
 )
 
@@ -22,9 +23,13 @@ type Server struct {
 	KeyPepper             string
 	RegistrationEnabled   bool
 	MaxClipboardTextBytes int64
-	TrustedNets           []*net.IPNet  // 可信反向代理 CIDR
-	SecureCookies         bool          // 生产 HTTPS 开启时 Cookie 附加 Secure 标记
-	RequireHTTPS          bool          // 强制 HTTPS（部署层由反向代理终止 TLS）
+	TrustedNets           []*net.IPNet // 可信反向代理 CIDR
+	SecureCookies         bool         // 生产 HTTPS 开启时 Cookie 附加 Secure 标记
+	RequireHTTPS          bool         // 强制 HTTPS（部署层由反向代理终止 TLS）
+	// 限流器（ROADMAP P3.1）：nil 表示关闭。Auth 按 IP 保护注册/登录，
+	// Upload 按账户保护上传。
+	AuthLimiter   *middleware.RateLimiter
+	UploadLimiter *middleware.RateLimiter
 }
 
 // logError 记录内部错误（不记录任何敏感内容，仅错误本身与调用上下文）。
