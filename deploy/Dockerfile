@@ -10,7 +10,7 @@ COPY web/ ./
 RUN npm run build
 
 # --- Stage 2: 构建 Go 服务端 ---
-FROM golang:1.26-alpine AS go-build
+FROM golang:1.27-alpine AS go-build
 WORKDIR /build/server
 COPY server/ ./
 RUN go mod download \
