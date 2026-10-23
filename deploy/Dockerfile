@@ -17,7 +17,7 @@ RUN go mod download \
     && CGO_ENABLED=0 go build -o /out/driftclip-server ./cmd/driftclip-server
 
 # --- Stage 3: 运行时 ---
-FROM alpine:3.20
+FROM alpine:3.24
 WORKDIR /app
 COPY --from=go-build /out/driftclip-server ./driftclip-server
 COPY --from=web-build /build/web/dist ./web/dist
