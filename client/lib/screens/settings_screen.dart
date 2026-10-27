@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../screens/about_screen.dart';
 import '../services/clipboard_monitor.dart';
 import '../services/desktop_integration.dart';
 import '../services/settings_store.dart';
@@ -68,6 +69,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       SnackBar(
         content: Text('连接成功，配置已保存（${widget.settings.apiBaseUrl}）'),
       ),
+    );
+  }
+
+  /// 进入关于页（版本号、开源仓库）。移动端 AppBar 图标位已满，
+  /// 关于入口统一收敛到设置页；桌面端侧边栏另有直达按钮。
+  void _openAbout() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const AboutScreen()),
     );
   }
 
@@ -162,6 +171,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
+              ),
+              const SizedBox(height: 24),
+              const _SectionHeader('关于'),
+              _SectionCard(
+                children: [
+                  // Card 提供 Material 祖先，InkWell 水波纹可正常渲染。
+                  InkWell(
+                    onTap: _openAbout,
+                    child: _SettingRow(
+                      icon: Icons.info_outline_rounded,
+                      title: '关于 DriftClip',
+                      subtitle: '版本、开源仓库与协议',
+                      trailing: Icon(
+                        Icons.chevron_right_rounded,
+                        size: 20,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

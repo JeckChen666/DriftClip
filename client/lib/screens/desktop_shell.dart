@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../models/history_record.dart';
+import '../screens/about_screen.dart';
 import '../screens/settings_screen.dart';
 import '../services/api_client.dart';
 import '../services/clipboard_monitor.dart';
@@ -93,6 +94,13 @@ class _DesktopShellState extends State<DesktopShell> {
     if (mounted) setState(() => _settingsTick++);
   }
 
+  /// 关于页无回调数据，无需像设置页一样刷新外部状态。
+  void _openAbout() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const AboutScreen()),
+    );
+  }
+
   void _openManualInput() => _contentKey.currentState?.requestManualInput();
 
   void _refresh() => _contentKey.currentState?.requestRefresh();
@@ -168,6 +176,7 @@ class _DesktopShellState extends State<DesktopShell> {
                     platformCounts: platformCounts,
                     listening: widget.settings.listenEnabled,
                     onOpenSettings: _openSettings,
+                    onOpenAbout: _openAbout,
                     onManualInput: _openManualInput,
                     onRefresh: _refresh,
                   );

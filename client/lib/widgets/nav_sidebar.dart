@@ -36,6 +36,9 @@ class NavSidebar extends StatelessWidget {
   /// 进入设置。
   final VoidCallback onOpenSettings;
 
+  /// 进入关于页。
+  final VoidCallback onOpenAbout;
+
   /// 弹出手动输入。
   final VoidCallback onManualInput;
 
@@ -50,6 +53,7 @@ class NavSidebar extends StatelessWidget {
     required this.platformCounts,
     required this.listening,
     required this.onOpenSettings,
+    required this.onOpenAbout,
     required this.onManualInput,
     required this.onRefresh,
   });
@@ -166,6 +170,13 @@ class NavSidebar extends StatelessWidget {
             label: '设置',
             shortcut: '$mod,',
             onPressed: onOpenSettings,
+          ),
+          const SizedBox(height: 4),
+          // 关于页无快捷键，_ShortcutHint 留空即可。
+          _FooterButton(
+            icon: Icons.info_outline_rounded,
+            label: '关于',
+            onPressed: onOpenAbout,
           ),
         ],
       ),
@@ -350,18 +361,20 @@ class _PlatformNavItem extends StatelessWidget {
   }
 }
 
-/// 底部快捷按钮：图标 + 标签 + 快捷键提示。
+/// 底部快捷按钮：图标 + 标签 + 可选快捷键提示。
 class _FooterButton extends StatelessWidget {
   final IconData icon;
   final String label;
-  final String shortcut;
+
+  /// 快捷键提示文案；null 表示无快捷键（如「关于」），不渲染提示。
+  final String? shortcut;
   final VoidCallback onPressed;
 
   const _FooterButton({
     required this.icon,
     required this.label,
-    required this.shortcut,
     required this.onPressed,
+    this.shortcut,
   });
 
   @override
@@ -391,7 +404,7 @@ class _FooterButton extends StatelessWidget {
                   ),
                 ),
               ),
-              _ShortcutHint(text: shortcut),
+              if (shortcut != null) _ShortcutHint(text: shortcut!),
             ],
           ),
         ),

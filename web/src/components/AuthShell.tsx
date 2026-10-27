@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 
+import { SiteFooter } from '@/components/SiteFooter'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface AuthShellProps {
@@ -13,7 +14,7 @@ interface AuthShellProps {
 // 两页只差表单内容与文案，抽出来保证视觉一致。
 export function AuthShell({ title, description, footer, children }: AuthShellProps) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-start px-5 pb-12 pt-[12vh]">
+    <div className="flex min-h-screen flex-col items-center justify-start px-5 pt-[12vh]">
       <div className="mb-6 inline-flex items-center gap-2.5 text-title font-heavy tracking-[-0.3px] text-foreground">
         <img className="size-8 object-contain" src="/driftclip-logo.png" alt="" />
         <span>DriftClip</span>
@@ -26,6 +27,10 @@ export function AuthShell({ title, description, footer, children }: AuthShellPro
         <CardContent>{children}</CardContent>
       </Card>
       {footer && <p className="mt-5 text-body-sm text-muted-foreground">{footer}</p>}
+      {/* mt-auto 贴底、pt-10 保证短屏时与卡片有间距；-mx-5 抵消容器内边距让分隔线通栏。 */}
+      <div className="-mx-5 mt-auto w-full pt-10">
+        <SiteFooter />
+      </div>
     </div>
   )
 }

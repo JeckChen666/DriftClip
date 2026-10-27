@@ -13,6 +13,7 @@ Notable changes per release. Dates are in UTC.
 - In-memory sliding-window rate limiting (ROADMAP P3.1, on by default): register/login per source IP (10/min) and upload per account (120/min), configurable via `rate_limit.*` / `DRIFTCLIP_RATE_LIMIT_*`; responses use 429 with `Retry-After`.
 - Web Keys page connection guide (ROADMAP P2.3): step-by-step onboarding with a client download link, the server address, and a QR code encoding `driftclip://connect?server=…&key=…`.
 - Client config import (ROADMAP P2.4): "从剪贴板导入" parses the connection string on every platform; Android/iOS additionally offer QR scanning via camera.
+- Open-source visibility: every web page (including login/register) now carries a footer linking to the GitHub repository, and the client gains an About screen — reachable from the desktop sidebar ("关于") and from Settings → "关于 DriftClip" on mobile — showing the app version and the repository URL with tap-to-copy.
 
 ### Fixed
 

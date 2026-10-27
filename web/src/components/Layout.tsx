@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { LogOut } from 'lucide-react'
 
+import { SiteFooter } from '@/components/SiteFooter'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
@@ -10,7 +11,8 @@ import { cn } from '@/lib/utils'
 export function Layout() {
   const { email, logout } = useAuth()
   return (
-    <div className="min-h-screen">
+    // 纵向 flex 让页脚在内容不足一屏时也贴住视口底部（mt-auto）。
+    <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
         <div className="mx-auto flex h-14 w-full max-w-[960px] items-center gap-6 px-5">
           <Link
@@ -52,9 +54,10 @@ export function Layout() {
           </div>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-[960px] px-5 pb-14 pt-7">
+      <main className="mx-auto w-full max-w-[960px] flex-1 px-5 pb-14 pt-7">
         <Outlet />
       </main>
+      <SiteFooter />
     </div>
   )
 }
